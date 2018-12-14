@@ -4,7 +4,7 @@
 #include "error.h"
 int state_pos = 1;
 
-int yywarp(void){
+int yywrap(void){
     state_pos = 1;
     return 1;
 }

@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <assert.h>
+#include <stdarg.h>
 
 
 #endif /* !STAND_H */
