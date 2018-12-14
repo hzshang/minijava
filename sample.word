@@ -2,7 +2,6 @@ class
 public
 static
 void
-main
 (
 )
 String
@@ -20,8 +19,6 @@ while
 System.out.println
 length
 .
-true
-false
 this
 new
 !
