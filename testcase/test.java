@@ -1,6 +1,7 @@
 public class test{
 	public static void main(String[] a){
-		System.out.println("hello,world\n");
+        int b=1;
+		System.out.println("hello,world");
 	}
 }
 

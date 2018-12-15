@@ -5,12 +5,12 @@
 
 
 YYSTYPE yylval;
-
+extern int line_num;
 int yylex();
 string names[] = {"ID","CLASS","PUBLIC","STATIC","VOID","LPAREN","RPAREN","LBRACK","RBRACK","LBRACE","RBRACE","STRING ","EXTENDS","SEMICOLON","BOOLEAN","INT","IF","WHILE","PRINT","LENGTH","DOT","THIS","NEW","ASSIGN","PLUS ","MINUS","TIMES","DIVIDE","EQ","LE","LT","GE","GT","AND","NOT","TRUE","FALSE","ELSE","COMMA","MAIN","RETURN","INT_ID","BOOLEAN_ID","STRING_ID"
 };
 string tokname(int tok) {
-  return tok<257 || tok>299 ? "BAD_TOKEN" : names[tok-257];
+  return tok<257 || tok>301 ? "BAD_TOKEN" : names[tok-257];
 }
 
 int main(int argc,char* argv[]){
@@ -28,12 +28,12 @@ int main(int argc,char* argv[]){
         switch (tok){
             case ID:
             case STRING:
-                printf("%10s %4d %s\n",tokname(tok),token_pos,yylval.sval);
+                printf("%2d:%10s %4d %s\n",line_num,tokname(tok),token_pos,yylval.sval);
                 break;
             case INT:
-                printf("%10s %4d %d\n",tokname(tok),token_pos,yylval.ival);
+                printf("%2d:%10s %4d %d\n",line_num,tokname(tok),token_pos,yylval.ival);
             default:
-                printf("%10s %4d\n",tokname(tok),token_pos);
+                printf("%2d:%10s %4d\n",line_num,tokname(tok),token_pos);
                 break;
         }
     }
