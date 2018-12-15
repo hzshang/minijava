@@ -13,9 +13,8 @@ typedef struct A_stm_* A_stm;
 typedef struct A_stm_list_* A_stm_list;
 
 typedef struct A_exp_* A_exp;
-typedef struct A_explist_* A_explist;
+typedef struct A_exp_list_* A_exp_list;
 
-typedef struct A_op_* A_op;
 typedef struct A_goal_* A_goal;
 typedef struct A_main_* A_main;
 
@@ -32,7 +31,7 @@ typedef struct A_arg_dec_* A_arg_dec;
 typedef struct A_arg_dec_list_* A_arg_dec_list;
 typedef struct A_type_* A_type;
 
-typedef enum{A_and,A_plus,A_minus,A_times,A_lt} A_op_;
+typedef enum{A_and,A_plus,A_minus,A_times,A_lt} A_op;
 
 struct A_goal_ {
     A_main mc;
@@ -80,7 +79,7 @@ struct A_method_dec_ {
     S_table tab;
 };
 
-struct A_method_dec_list{
+struct A_method_dec_list_{
     A_method_dec val;
     A_method_dec_list next;
 };
@@ -127,7 +126,7 @@ struct A_exp_ {
         struct{A_exp a;A_op op; A_exp b;} op;
         struct{A_exp exp;A_exp sub;} sub;
         struct{A_exp exp;} length;
-        struct{A_exp exp;S_sym method;A_explist args;} method;
+        struct{A_exp exp;S_sym method;A_exp_list args;} method;
         struct{int val;} intval;
         struct{bool val;} boolval;
         struct{S_sym name;} id;
@@ -139,16 +138,16 @@ struct A_exp_ {
     } u;
 };
 
-struct A_explist_{
+struct A_exp_list_{
     A_exp val;
-    A_explist next;
+    A_exp_list next;
 };
 
 A_goal A_goal_init(A_main,A_class_list);
-A_main A_main_init(S_sym,S_sym,A_stm,S_table);
-A_class A_class_init(S_sym,S_sym,A_var_dec_list,A_method_dec_list,S_table);
+A_main A_main_init(S_sym,S_sym,A_stm);
+A_class A_class_init(S_sym,S_sym,A_var_dec_list,A_method_dec_list);
 A_var_dec A_var_dec_init(A_type,S_sym);
-A_method_dec A_method_dec_init(A_type,S_sym,A_arg_dec_list,A_var_dec_list,A_stm_list,A_exp,S_table);
+A_method_dec A_method_dec_init(A_type,S_sym,A_arg_dec_list,A_var_dec_list,A_stm_list,A_exp);
 A_arg_dec A_arg_dec_init(A_type,S_sym);
 
 A_type A_type_init_int();
@@ -156,17 +155,17 @@ A_type A_type_init_array();
 A_type A_type_init_boolean();
 A_type A_type_init_sym(S_sym);
 
-A_stm A_stm_init_stmlist(A_stm_list,S_table);
-A_stm A_stm_init_cond(A_exp,A_stm,S_table);
-A_stm A_stm_init_loop(A_exp,A_stm,S_table);
-A_stm A_stm_init_print(A_exp,S_table);
-A_stm A_stm_init_assign(S_sym,A_exp,S_table);
-A_stm A_stm_init_sub(S_sym,A_exp,A_exp,S_table);
+A_stm A_stm_init_stmlist(A_stm_list);
+A_stm A_stm_init_cond(A_exp,A_stm);
+A_stm A_stm_init_loop(A_exp,A_stm);
+A_stm A_stm_init_print(A_exp);
+A_stm A_stm_init_assign(S_sym,A_exp);
+A_stm A_stm_init_sub(S_sym,A_exp,A_exp);
 
 A_exp A_exp_init_op(A_exp,A_op,A_exp);
 A_exp A_exp_init_sub(A_exp,A_exp);
 A_exp A_exp_init_length(A_exp);
-A_exp A_exp_init_method(A_exp,S_sym,A_explist);
+A_exp A_exp_init_method(A_exp,S_sym,A_exp_list);
 A_exp A_exp_init_intval(int);
 A_exp A_exp_init_boolval(bool);
 A_exp A_exp_init_id(S_sym);
@@ -175,6 +174,25 @@ A_exp A_exp_init_array(A_exp);
 A_exp A_exp_init_newid(S_sym);
 A_exp A_exp_init_reverse(A_exp);
 A_exp A_exp_init_exps(A_exp);
+
+A_exp_list A_exp_list_init_exp(A_exp e);
+A_exp_list A_exp_list_init_exps(A_exp e,A_exp_list next);
+
+A_class_list A_class_init_class(A_class c);
+A_class_list A_class_init_classes(A_class c,A_class_list next);
+
+A_stm_list A_stm_list_init_stm(A_stm s);
+A_stm_list A_stm_list_init_stms(A_stm s,A_stm_list next);
+
+A_var_dec_list A_var_dec_list_init_var(A_var_dec val);
+A_var_dec_list A_var_dec_list_init_vars(A_var_dec val,A_var_dec_list next);
+
+A_arg_dec_list A_arg_dec_list_init_arg(A_arg_dec arg);
+A_arg_dec_list A_arg_dec_list_init_args(A_arg_dec arg,A_arg_dec_list next);
+
+A_method_dec_list A_method_dec_list_init_method(A_method_dec val);
+A_method_dec_list A_method_dec_list_init_methods(A_method_dec val,A_method_dec_list next);
+
 
 
 #endif /* !ABSYN_H */

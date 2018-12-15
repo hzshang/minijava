@@ -22,8 +22,9 @@ struct S_table_ {
 };
 
 S_sym S_symbol(string name);
+//S_sym S_symbol(S_table,string name);
 S_sym S_sym_init(string name);
-S_sym S_sym_lookup(S_sym id,S_table);
+S_sym S_sym_lookup(S_table,string);
 
 S_table S_table_init(S_table parent);
 void S_table_add(S_table,S_sym);
