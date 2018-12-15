@@ -146,7 +146,7 @@ A_exp A_exp_init_length(A_exp exp){
     e->u.length.exp = exp;
     return e;
 }
-A_exp A_exp_init_method(A_exp exp,S_sym name , A_explist args){
+A_exp A_exp_init_method(A_exp exp,S_sym name , A_exp_list args){
     A_exp e = safe_malloc(sizeof(*e));
     e->kind = A_exp_method;
     e->u.method.exp = exp;
@@ -202,9 +202,82 @@ A_exp A_exp_init_exps(A_exp exps){
     return e;
 }
 
+A_exp_list A_exp_list_init_exps(A_exp e,A_exp_list next){
+    A_exp_list l = safe_malloc(sizeof(*l));
+    l->val = e;
+    l->next = next;
+    return l;
+}
 
+A_exp_list A_exp_list_init_exp(A_exp e){
+    A_exp_list l = safe_malloc(sizeof(*l));
+    l->val = e;
+    l->next = NULL;
+    return l;
+}
 
+A_class_list A_class_list_init_class(A_class c){
+    A_class_list l = safe_malloc(sizeof(*l));
+    l->val = c;
+    l->next = NULL;
+    return l;
+}
 
+A_class_list A_class_list_init_classes(A_class c,A_class_list next){
+    A_class_list l = safe_malloc(sizeof(*l));
+    l->val = c;
+    l->next = next;
+    return l;
+}
 
+A_stm_list A_stm_list_init_stm(A_stm s){
+    A_stm_list l = safe_malloc(sizeof(*l));
+    l->val = s;
+    l->next = NULL;
+    return l;
+}
 
+A_stm_list A_stm_list_init_stms(A_stm s,A_stm_list next){
+    A_stm_list l = safe_malloc(sizeof(*l));
+    l->val = s;
+    l->next = next;
+    return l;
+}
+
+A_var_dec_list A_var_dec_list_init_var(A_var_dec val){
+    A_var_dec_list l = safe_malloc(sizeof(*l));
+    l->val = val;
+    l->next = NULL;
+    return l;
+}
+A_var_dec_list A_var_dec_list_init_vars(A_var_dec val,A_var_dec_list next){
+    A_var_dec_list l = safe_malloc(sizeof(*l));
+    l->val = val;
+    l->next = next;
+    return l;
+}
+A_arg_dec_list A_arg_dec_list_init_arg(A_arg_dec arg){
+    A_arg_dec_list l = safe_malloc(sizeof(*l));
+    l->val = arg;
+    l->next = NULL;
+    return l;
+}
+A_arg_dec_list A_arg_dec_list_init_args(A_arg_dec arg,A_arg_dec_list next){
+    A_arg_dec_list l = safe_malloc(sizeof(*l));
+    l->val = arg;
+    l->next = next;
+    return l;
+}
+A_method_dec_list A_method_dec_list_init_method(A_method_dec val){
+    A_method_dec_list l = safe_malloc(sizeof(*l));
+    l->val = val;
+    l->next = NULL;
+    return l;
+}
+A_method_dec_list A_method_dec_list_init_methods(A_method_dec val,A_method_dec_list next){
+    A_method_dec_list l = safe_malloc(sizeof(*l));
+    l->val = val;
+    l->next = next;
+    return l;
+}
 
