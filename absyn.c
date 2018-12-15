@@ -10,22 +10,22 @@ A_goal A_goal_init(A_main mc,A_class_list list){
     return g;
 }
 
-A_main A_main_init(S_sym id,S_sym arg_id,A_stm stm,S_table parent){
+A_main A_main_init(S_sym id,S_sym arg_id,A_stm stm){
     A_main mc = safe_malloc(sizeof(*mc));
     mc->id = id;
     mc->arg_id = arg_id;
     mc->stm = stm;
-    mc->tab = S_table_init(parent);
+ //   mc->tab = S_table_init(parent);
     return mc;
 }
 
-A_class A_class_init(S_sym id ,S_sym extend,A_var_dec_list decs,A_method_dec_list methods, S_table parent){
+A_class A_class_init(S_sym id ,S_sym extend,A_var_dec_list decs,A_method_dec_list methods){
     A_class cls = safe_malloc(sizeof(*cls));
     cls->id = id;
     cls->extend = extend;
     cls->vars = decs;
     cls->methods = methods;
-    cls->tab = S_table_init(parent);
+ //   cls->tab = S_table_init(parent);
     return cls;
 }
 
@@ -36,7 +36,7 @@ A_var_dec A_var_dec_init(A_type type,S_sym name){
     return v;
 }
 
-A_method_dec A_method_dec_init(A_type type,S_sym name,A_arg_dec_list args,A_var_dec_list vars, A_stm_list stms,A_exp ret,S_table parent){
+A_method_dec A_method_dec_init(A_type type,S_sym name,A_arg_dec_list args,A_var_dec_list vars, A_stm_list stms,A_exp ret){
     A_method_dec m = safe_malloc(sizeof(*m));
     m->type = type;
     m->name = name;
@@ -44,7 +44,7 @@ A_method_dec A_method_dec_init(A_type type,S_sym name,A_arg_dec_list args,A_var_
     m->vars = vars;
     m->stms = stms;
     m->ret = ret;
-    m->tab = S_table_init(parent);
+   // m->tab = S_table_init(parent);
     return m;
 }
 
@@ -77,51 +77,51 @@ A_type A_type_init_sym(S_sym name){
     return t;
 }
 
-A_stm A_stm_init_stmlist(A_stm_list stms,S_table parent){
+A_stm A_stm_init_stmlist(A_stm_list stms){
     A_stm s = safe_malloc(sizeof(*s));
     s->kind = A_stm_stms;
     s->u.stms.stms = stms;
-    s->tab = S_table_init(parent);
+    //s->tab = S_table_init(parent);
     return s;
 }
-A_stm A_stm_init_cond(A_exp cond,A_stm stm,S_table parent){
+A_stm A_stm_init_cond(A_exp cond,A_stm stm){
     A_stm s = safe_malloc(sizeof(*s));
     s->kind = A_stm_if_else;
     s->u.cond.cond = cond;
     s->u.cond.stm = stm;
-    s->tab = S_table_init(parent);
+    //s->tab = S_table_init(parent);
     return s;
 }
-A_stm A_stm_init_loop(A_exp cond, A_stm stm,S_table parent){
+A_stm A_stm_init_loop(A_exp cond, A_stm stm){
     A_stm s = safe_malloc(sizeof(*s));
     s->kind = A_stm_loop;
     s->u.loop.cond = cond;
     s->u.loop.stm = stm;
-    s->tab = S_table_init(parent);
+    //s->tab = S_table_init(parent);
     return s;
 }
-A_stm A_stm_init_print(A_exp out,S_table parent){
+A_stm A_stm_init_print(A_exp out){
     A_stm s = safe_malloc(sizeof(*s));
     s->kind = A_stm_print;
     s->u.print.out = out;
-    s->tab = S_table_init(parent);
+    //s->tab = S_table_init(parent);
     return s;
 }
-A_stm A_stm_init_assign(S_sym name,A_exp val,S_table parent){
+A_stm A_stm_init_assign(S_sym name,A_exp val){
     A_stm s = safe_malloc(sizeof(*s));
     s->kind = A_stm_assign;
     s->u.assign.name = name;
     s->u.assign.val = val;
-    s->tab = S_table_init(parent);
+    //s->tab = S_table_init(parent);
     return s;
 }
-A_stm A_stm_init_sub(S_sym name,A_exp sub,A_exp val,S_table parent){
+A_stm A_stm_init_sub(S_sym name,A_exp sub,A_exp val){
     A_stm s = safe_malloc(sizeof(*s));
     s->kind = A_stm_sub;
     s->u.sub.name = name;
     s->u.sub.sub = sub;
     s->u.sub.val = val;
-    s->tab = S_table_init(parent);
+    //s->tab = S_table_init(parent);
     return s;
 }
 

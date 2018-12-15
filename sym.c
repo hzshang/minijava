@@ -3,7 +3,15 @@
 
 
 S_sym S_symbol(string name){
-
+    /*
+    S_sym tmp = S_sym_lookup(t,name);
+    if(!tmp){
+        tmp = S_sym_init(name);
+        S_table_add(t,tmp);
+    }
+    return tmp;
+    */
+    return NULL;
 }
 S_sym S_sym_init(string name){
     S_sym r = safe_malloc(sizeof(*r));
@@ -13,12 +21,12 @@ S_sym S_sym_init(string name){
     r->name = tmp_name;
 }
 
-S_sym S_sym_lookup(S_sym id,S_table t){
+S_sym S_sym_lookup(S_table t,string name){
     S_table tmp = t;
     while(tmp){
         S_sym p = tmp->chain;
         while(p){
-            if(!strcmp(p->name,id->name))
+            if(!strcmp(p->name,name))
                 return p;
             p = p->next;
         }
