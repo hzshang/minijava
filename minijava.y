@@ -72,7 +72,6 @@ void yyerror(string s){
 %right REVERSE
 %left LBRACK
 %left DOT
-
 %start program
 
 %%
