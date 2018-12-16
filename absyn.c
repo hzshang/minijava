@@ -309,11 +309,8 @@ A_arg_dec_list A_arg_dec_list_init_null(){
 A_stm_list A_stm_list_init_null(){
     return NULL;
 }
+
 A_exp_list A_exp_list_init_null(){
     return NULL;
 }
-
-
-
-
 
