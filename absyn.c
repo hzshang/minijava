@@ -19,7 +19,7 @@ A_main A_main_init(S_sym id,S_sym arg_id,A_stm stm){
     return mc;
 }
 
-A_class A_class_init(S_sym id ,S_sym extend,A_var_dec_list decs,A_method_dec_list methods){
+A_class A_class_init(S_sym id ,S_sym extend,A_var_dec_list decs,A_method_list methods){
     A_class cls = safe_malloc(sizeof(*cls));
     cls->id = id;
     cls->extend = extend;
@@ -36,8 +36,8 @@ A_var_dec A_var_dec_init(A_type type,S_sym name){
     return v;
 }
 
-A_method_dec A_method_dec_init(A_type type,S_sym name,A_arg_dec_list args,A_var_dec_list vars, A_stm_list stms,A_exp ret){
-    A_method_dec m = safe_malloc(sizeof(*m));
+A_method A_method_init(A_type type,S_sym name,A_arg_dec_list args,A_var_dec_list vars, A_stm_list stms,A_exp ret){
+    A_method m = safe_malloc(sizeof(*m));
     m->type = type;
     m->name = name;
     m->args = args;
@@ -70,6 +70,11 @@ A_type A_type_init_boolean(){
     t->kind = A_type_boolean;
     return t;
 }
+A_type A_type_init_string(){
+    A_type t = safe_malloc(sizeof(*t));
+    t->kind = A_type_string;
+    return t;
+}
 A_type A_type_init_sym(S_sym name){
     A_type t = safe_malloc(sizeof(*t));
     t->kind = A_type_sym;
@@ -84,11 +89,12 @@ A_stm A_stm_init_stmlist(A_stm_list stms){
     //s->tab = S_table_init(parent);
     return s;
 }
-A_stm A_stm_init_cond(A_exp cond,A_stm stm){
+A_stm A_stm_init_cond(A_exp cond,A_stm yes, A_stm no){
     A_stm s = safe_malloc(sizeof(*s));
     s->kind = A_stm_if_else;
     s->u.cond.cond = cond;
-    s->u.cond.stm = stm;
+    s->u.cond.yes = yes;
+    s->u.cond.no = no;
     //s->tab = S_table_init(parent);
     return s;
 }
@@ -146,12 +152,12 @@ A_exp A_exp_init_length(A_exp exp){
     e->u.length.exp = exp;
     return e;
 }
-A_exp A_exp_init_method(A_exp exp,S_sym name , A_exp_list args){
+A_exp A_exp_init_method(A_exp exp,S_sym name){
     A_exp e = safe_malloc(sizeof(*e));
     e->kind = A_exp_method;
     e->u.method.exp = exp;
     e->u.method.method = name;
-    e->u.method.args = args;
+//    e->u.method.args = args;
     return e;
 }
 A_exp A_exp_init_intval(int val){
@@ -195,25 +201,11 @@ A_exp A_exp_init_reverse(A_exp exp){
     e->u.reverse.exp = exp;
     return e;
 }
-A_exp A_exp_init_exps(A_exp exps){
+A_exp A_exp_init_exp(A_exp exp){
     A_exp e = safe_malloc(sizeof(*e));
-    e->kind = A_exp_exps;
-    e->u.exps.exp = exps;
+    e->kind = A_exp_exp;
+    e->u.exps.exp = exp;
     return e;
-}
-
-A_exp_list A_exp_list_init_exps(A_exp e,A_exp_list next){
-    A_exp_list l = safe_malloc(sizeof(*l));
-    l->val = e;
-    l->next = next;
-    return l;
-}
-
-A_exp_list A_exp_list_init_exp(A_exp e){
-    A_exp_list l = safe_malloc(sizeof(*l));
-    l->val = e;
-    l->next = NULL;
-    return l;
 }
 
 A_class_list A_class_list_init_class(A_class c){
@@ -268,14 +260,14 @@ A_arg_dec_list A_arg_dec_list_init_args(A_arg_dec arg,A_arg_dec_list next){
     l->next = next;
     return l;
 }
-A_method_dec_list A_method_dec_list_init_method(A_method_dec val){
-    A_method_dec_list l = safe_malloc(sizeof(*l));
+A_method_list A_method_list_init_method(A_method val){
+    A_method_list l = safe_malloc(sizeof(*l));
     l->val = val;
     l->next = NULL;
     return l;
 }
-A_method_dec_list A_method_dec_list_init_methods(A_method_dec val,A_method_dec_list next){
-    A_method_dec_list l = safe_malloc(sizeof(*l));
+A_method_list A_method_list_init_methods(A_method val,A_method_list next){
+    A_method_list l = safe_malloc(sizeof(*l));
     l->val = val;
     l->next = next;
     return l;

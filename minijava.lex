@@ -1,7 +1,10 @@
 %{
 #include "stand.h"
-#include "tokens.h"
+#include "util.h"
+//#include "tokens.h"
 #include "error.h"
+#include "absyn.h"
+#include "y.tab.h"
 int state_pos = 1;
 
 int yywrap(void){
@@ -129,7 +132,7 @@ char *string_ptr;
     "[" {ADJ();return LBRACK;}
     "]" {ADJ();return RBRACK;}
     "=" {ADJ();return ASSIGN;}
-    "!" {ADJ();return NOT;}
+    "!" {ADJ();return REVERSE;}
     "<" {ADJ();return LT;}
     ">" {ADJ();return GT;}
     "&&" {ADJ();return AND;}
