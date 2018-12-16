@@ -54,8 +54,8 @@ void yyerror(string s){
 %type <class_list> classes
 %type <method> method
 %type <method_list> methods
-%type <arg_dec> arg
-%type <arg_dec_list> args
+%type <arg_dec> arg arg_next
+%type <arg_dec_list> args arg_nexts
 %type <var_dec> var
 %type <var_dec_list> vars
 %type <type> type
@@ -105,8 +105,18 @@ args: arg args {$$ = A_arg_dec_list_init_args($1,$2);}
     ;
 
 /* TODO: only support one arg*/
-arg: type ID {$$ = A_arg_dec_init($1,S_symbol($2));}
+arg_next: COMMA arg {$$ = $2;}
+
+arg_nexts:  arg_next arg_nexts {$$ = A_arg_dec_list_init_args($1,$2);}
+    | {$$ = A_arg_dec_list_init_null();}
     ;
+
+arg: type ID { $$ = A_arg_dec_init($1,S_symbol($2));}
+    ;
+
+args: arg arg_nexts {$$ = A_arg_dec_list_init_args($1,$2);} 
+    ;
+
 vars: {$$ = A_var_dec_list_init_null();}
     | var vars {$$ = A_var_dec_list_init_vars($1,$2);}
     ;
