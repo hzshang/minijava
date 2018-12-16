@@ -90,13 +90,14 @@ classes: {$$ = A_class_list_init_null();}
     | class classes { $$ = A_class_list_init_classes($1,$2);}
     ;
 
-/*TODO only support no extend */
+/*TODO: only support no extend */
+/*TODO: only support no args */
 class: CLASS ID LBRACE vars methods RBRACE { $$ = A_class_init(S_symbol($2),NULL,$4,$5);}
     ;
 methods: { $$ = A_method_list_init_null();}
     | method methods {$$ = A_method_list_init_methods($1,$2);}
     ;
-method: PUBLIC type ID LPAREN args RPAREN LBRACE vars stms RETURN exp SEMICOLON RBRACE {$$ = A_method_init($2,S_symbol($3),$5,$8,$9,$11);}
+method: PUBLIC type ID LPAREN args RPAREN LBRACE stms RETURN exp SEMICOLON RBRACE {$$ = A_method_init($2,S_symbol($3),$5,$8,$10);}
     ;
 
 args: arg args {$$ = A_arg_dec_list_init_args($1,$2);}
@@ -106,7 +107,6 @@ args: arg args {$$ = A_arg_dec_list_init_args($1,$2);}
 /* TODO: only support one arg*/
 arg: type ID {$$ = A_arg_dec_init($1,S_symbol($2));}
     ;
-
 vars: {$$ = A_var_dec_list_init_null();}
     | var vars {$$ = A_var_dec_list_init_vars($1,$2);}
     ;
@@ -130,6 +130,7 @@ stm: LBRACE stms RBRACE {$$ = A_stm_init_stmlist($2);}
     | PRINT LPAREN exp RPAREN SEMICOLON {$$ = A_stm_init_print($3);}
     | ID ASSIGN exp SEMICOLON {$$ = A_stm_init_assign(S_symbol($1),$3);}
     | ID LBRACK exp RBRACK ASSIGN exp SEMICOLON { $$ = A_stm_init_sub(S_symbol($1),$3,$6);}
+    | var {$$ = A_stm_init_var($1);}
     ;
 
 exp:  ID { $$ = A_exp_init_id(S_symbol($1));}

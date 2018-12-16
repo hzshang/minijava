@@ -19,12 +19,12 @@ A_main A_main_init(S_sym id,S_sym arg_id,A_stm stm){
     return mc;
 }
 
-A_class A_class_init(S_sym id ,S_sym extend,A_var_dec_list decs,A_method_list methods){
+A_class A_class_init(S_sym id ,S_sym extend,A_var_dec_list vars,A_method_list methods){
     A_class cls = safe_malloc(sizeof(*cls));
     cls->id = id;
     cls->extend = extend;
-    cls->vars = decs;
     cls->methods = methods;
+    cls->vars = vars;
  //   cls->tab = S_table_init(parent);
     return cls;
 }
@@ -36,12 +36,11 @@ A_var_dec A_var_dec_init(A_type type,S_sym name){
     return v;
 }
 
-A_method A_method_init(A_type type,S_sym name,A_arg_dec_list args,A_var_dec_list vars, A_stm_list stms,A_exp ret){
+A_method A_method_init(A_type type,S_sym name,A_arg_dec_list args, A_stm_list stms,A_exp ret){
     A_method m = safe_malloc(sizeof(*m));
     m->type = type;
     m->name = name;
     m->args = args;
-    m->vars = vars;
     m->stms = stms;
     m->ret = ret;
    // m->tab = S_table_init(parent);
@@ -128,6 +127,13 @@ A_stm A_stm_init_sub(S_sym name,A_exp sub,A_exp val){
     s->u.sub.sub = sub;
     s->u.sub.val = val;
     //s->tab = S_table_init(parent);
+    return s;
+}
+
+A_stm A_stm_init_var(A_var_dec v){
+    A_stm s = safe_malloc(sizeof(*s));
+    s->kind = A_stm_var_dec;
+    s->u.var.var = v;
     return s;
 }
 
