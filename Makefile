@@ -1,7 +1,10 @@
 CC=gcc
 
-all: sym.o absyn.o check.o error.o lex.yy.o y.tab.o util.o
+all: sym.o absyn.o check.o error.o y.tab.o lex.yy.o util.o
 	gcc $^ 
+
+parse: sym.o absyn.o parse.o error.o y.tab.o lex.yy.o util.o
+	gcc $^ -o $@
 
 lex.yy.c: minijava.lex
 	lex $^
@@ -16,4 +19,4 @@ y.tab.c: minijava.y
 	yacc -dv $^
 
 clean:
-	rm -rf *.o a.out
+	rm -rf *.o a.out y.tab.[ch] lex.yy.c

@@ -22,8 +22,8 @@ void yyerror(string s){
     A_class class;
     A_class_list class_list;
 
-    A_method_dec method_dec;
-    A_method_dec_list method_dec_list;
+    A_method method;
+    A_method_list method_list;
 
     A_arg_dec arg_dec;
     A_arg_dec_list arg_dec_list;
@@ -37,7 +37,6 @@ void yyerror(string s){
     A_stm_list stm_list;
 
     A_exp exp;
-    A_exp_list exp_list;
 }
 %token <sval> ID STRING
 %token <ival> INT
@@ -46,24 +45,23 @@ void yyerror(string s){
     CLASS PUBLIC STATIC VOID LPAREN RPAREN LBRACK RBRACK 
     LBRACE RBRACE EXTENDS SEMICOLON BOOLEAN IF 
     WHILE PRINT LENGTH DOT THIS NEW ASSIGN PLUS MINUS TIMES 
-    DIVIDE EQ LE LT GE GT AND NOT TRUE FALSE ELSE COMMA MAIN 
+    DIVIDE EQ LE LT GE GT AND REVERSE TRUE FALSE ELSE COMMA MAIN 
     RETURN INT_ID BOOLEAN_ID STRING_ID
 %type <goal> goal
 %type <main> main
 %type <class> class
 %type <class_list> classes
-%type <method_dec> method
-%type <method_dec_list> methods
+%type <method> method
+%type <method_list> methods
 %type <arg_dec> arg
 %type <arg_dec_list> args
 %type <var_dec> var
 %type <var_dec_list> vars
-%type <type> type type_int type_array type_boolean type_sym
-%type <stm> stm stms_stm cond_stm loop_stm print_stm assgin_stm sub_stm
+%type <type> type
+%type <stm> stm
 %type <stm_list> stms
 
-%type <exp> exp op_exp sub_exp length_exp method_exp intval_exp boolval_exp id_exp this_exp array_exp new_id_exp reverse_exp exps_exp
-%type <exp_list> exps
+%type <exp> exp
 
 %left AND
 %nonassoc EQ LT GT
@@ -72,7 +70,9 @@ void yyerror(string s){
 
 %nonassoc IF
 %nonassoc ELSE
+
 %start program
+
 %%
 
 program: goal {root = $1;}
@@ -84,16 +84,16 @@ main: CLASS ID LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING_ID LBRACK RBRACK ID 
 classes: class { $$ = A_class_list_init_class($1);}
         | class classes { $$ = A_class_list_init_classes($1,$2);}
 /*TODO only support no extend */
-class: CLASS ID LBRACE vars methods RBRACE { $$ = A_class_init(S_symbol($2),NULL,vars,methods);}
+class: CLASS ID LBRACE vars methods RBRACE { $$ = A_class_init(S_symbol($2),NULL,$4,$5);}
 
 methods: method { $$ = A_method_list_init_method($1);}
     | method methods {$$ = A_method_list_init_methods($1,$2);}
-method: PUBLIC type ID LPAREN arg_dec_list RPAREN LBRACE vars stms RETURN exp SEMICOLON RBRACE {$$ = A_method_dec_init($2,S_symbol($3),$5,$8,$9,$11);}
+method: PUBLIC type ID LPAREN args RPAREN LBRACE vars stms RETURN exp SEMICOLON RBRACE {$$ = A_method_init($2,S_symbol($3),$5,$8,$9,$11);}
 
-arg_dec_list:  arg_dec {$$ = A_arg_dec_list_init_arg($1);}
-    | arg_dec arg_dec_list {$$ = A_arg_dec_list_init_args($1,$2);}
+args:  arg {$$ = A_arg_dec_list_init_arg($1);}
+    | arg args {$$ = A_arg_dec_list_init_args($1,$2);}
 /* TODO: only support one arg*/
-arg_dec: type ID {$$ = A_arg_dec_init($1,S_symbol($2));}
+arg: type ID {$$ = A_arg_dec_init($1,S_symbol($2));}
 
 vars:  var { $$ = A_var_dec_list_init_var($1);}
     | var vars {$$ = A_var_dec_list_init_vars($1,$2);}
@@ -114,12 +114,24 @@ stm: LBRACE stms RBRACE {$$ = A_stm_init_stmlist($2);}
     | ID ASSIGN exp SEMICOLON {$$ = A_stm_init_assign(S_symbol($1),$3);}
     | ID LBRACK exp RBRACK ASSIGN exp SEMICOLON { $$ = A_stm_init_sub(S_symbol($1),$3,$6);}
 
-exps: exp {$$ = A_exp_list_exp($1);}
-    | exp exps {$$ = A_exp_list_init_exps($1,$2);}
+exp: ID { $$ = A_exp_init_id(S_symbol($1));}
+    | exp LBRACK exp RBRACK { $$ = A_exp_init_sub($1,$3);}
+    | exp DOT LENGTH { $$ = A_exp_init_length($1);}
+    /* TODO: only suport no args */
+    | exp DOT ID LPAREN RPAREN LBRACE { $$ = A_exp_init_method($1,S_symbol($3));}
+    | INT { $$ = A_exp_init_intval($1);}
+    | TRUE { $$ = A_exp_init_boolval(true);}
+    | FALSE { $$ = A_exp_init_boolval(false);}
+    | THIS { $$ = A_exp_init_this();}
+    | NEW INT_ID LBRACK exp RBRACK { $$ = A_exp_init_array($4);}
+    | NEW ID LBRACK RBRACK {$$ = A_exp_init_newid(S_symbol($2));}
+    | REVERSE exp { $$ = A_exp_init_reverse($2);}
+    | LBRACK exp RBRACK {$$ = A_exp_init_exp($2);}
+    | exp PLUS exp { $$ = A_exp_init_op($1,A_plus,$3);}
+    | exp MINUS exp { $$ = A_exp_init_op($1,A_minus,$3);}
+    | exp TIMES exp { $$ = A_exp_init_op($1,A_times,$3);}
+    | exp AND exp { $$ = A_exp_init_op($1,A_and,$3);}
+    | exp LT exp { $$ = A_exp_init_op($1,A_lt,$3);}
 
-exp: exp LPAREN PLUS RPAREN exp { $$ = A_exp_init_op($1,A_plus,$3);}
-    | exp LPAREN MINUS RPAREN exp { $$ = A_exp_init_op($1,A_minus,$3);}
-    | exp LPAREN TIMES RPAREN exp { $$ = A_exp_init_op($1,A_times,$3);}
-    | exp LPAREN AND RPAREN exp { $$ = A_exp_init_op($1,A_and,$3);}
-    | exp LPAREN LT RPAREN exp { $$ = A_exp_init_op($1,A_lt,$3);}
+
 

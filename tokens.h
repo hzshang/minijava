@@ -46,7 +46,7 @@ extern YYSTYPE yylval;
 //#define GE 288
 #define GT 289
 #define AND 290
-#define NOT 291
+#define REVERSE 291
 #define TRUE 292
 #define FALSE 293
 
