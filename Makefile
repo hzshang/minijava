@@ -3,6 +3,7 @@ CFLAGS=-D YYDEBUG
 
 all: check parse debug.html
 	@echo done
+
 debug.html: minijava.y
 	bison -x minijava.y
 	xsltproc `bison --print-datadir`/xslt/xml2xhtml.xsl minijava.xml > $@
