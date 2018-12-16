@@ -47,6 +47,7 @@ void yyerror(string s){
     WHILE PRINT LENGTH DOT THIS NEW ASSIGN PLUS MINUS TIMES 
     DIVIDE EQ LE LT GE GT AND REVERSE TRUE FALSE ELSE COMMA MAIN 
     RETURN INT_ID BOOLEAN_ID STRING_ID
+
 %type <goal> goal
 %type <main> main
 %type <class> class
@@ -60,22 +61,23 @@ void yyerror(string s){
 %type <type> type
 %type <stm> stm
 %type <stm_list> stms
-
 %type <exp> exp
 
-%left AND
-%nonassoc EQ LT GT
+
+/* 先执行的排在下面*/
+%nonassoc LT AND
 %left PLUS MINUS
 %left TIMES
 
-%nonassoc IF
-%nonassoc ELSE
+%right REVERSE
+%left LBRACK
+%left DOT
 
 %start program
 
 %%
 
-program: goal  {root = $1;}
+program: goal {root = $1;}
     ;
 
 goal: main classes { $$ = A_goal_init($1,$2);}
@@ -84,23 +86,20 @@ goal: main classes { $$ = A_goal_init($1,$2);}
 main: CLASS ID LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING_ID LBRACK RBRACK ID RPAREN LBRACE stm RBRACE RBRACE {$$ = A_main_init(S_symbol($2),S_symbol($12),$15);}
     ;
 
-classes:  class { $$ = A_class_list_init_class($1);}
+classes: {$$ = A_class_list_init_null();}
     | class classes { $$ = A_class_list_init_classes($1,$2);}
-    | {$$ = A_class_list_init_null();}
     ;
 
 /*TODO only support no extend */
 class: CLASS ID LBRACE vars methods RBRACE { $$ = A_class_init(S_symbol($2),NULL,$4,$5);}
     ;
-methods: method { $$ = A_method_list_init_method($1);}
+methods: { $$ = A_method_list_init_null();}
     | method methods {$$ = A_method_list_init_methods($1,$2);}
-    | { $$ = A_method_list_init_null();}
     ;
 method: PUBLIC type ID LPAREN args RPAREN LBRACE vars stms RETURN exp SEMICOLON RBRACE {$$ = A_method_init($2,S_symbol($3),$5,$8,$9,$11);}
     ;
 
-args:  arg {$$ = A_arg_dec_list_init_arg($1);}
-    | arg args {$$ = A_arg_dec_list_init_args($1,$2);}
+args: arg args {$$ = A_arg_dec_list_init_args($1,$2);}
     | { $$ = A_arg_dec_list_init_null();}
     ;
 
@@ -108,9 +107,8 @@ args:  arg {$$ = A_arg_dec_list_init_arg($1);}
 arg: type ID {$$ = A_arg_dec_init($1,S_symbol($2));}
     ;
 
-vars:  var { $$ = A_var_dec_list_init_var($1);}
+vars: {$$ = A_var_dec_list_init_null();}
     | var vars {$$ = A_var_dec_list_init_vars($1,$2);}
-    | {$$ = A_var_dec_list_init_null();}
     ;
 
 var: type ID SEMICOLON { $$ = A_var_dec_init($1,S_symbol($2));}
@@ -120,11 +118,12 @@ type: INT_ID {$$ = A_type_init_int();}
     | STRING_ID {$$ = A_type_init_string();}
     | BOOLEAN_ID {$$ = A_type_init_boolean();}
     | ID {$$ = A_type_init_sym(S_symbol($1));}
-
-stms: stm {$$ = A_stm_list_init_stm($1);}
-    | stm stms {$$ = A_stm_list_init_stms($1,$2);}
-    | {$$ = A_stm_list_init_null();}
     ;
+
+stms: {$$ = A_stm_list_init_null();}
+    | stm stms {$$ = A_stm_list_init_stms($1,$2);}
+    ;
+
 stm: LBRACE stms RBRACE {$$ = A_stm_init_stmlist($2);}
     | IF LPAREN exp RPAREN stm ELSE stm {$$ = A_stm_init_cond($3,$5,$7);}
     | WHILE LPAREN exp RPAREN stm { $$ = A_stm_init_loop($3,$5);}
@@ -133,17 +132,13 @@ stm: LBRACE stms RBRACE {$$ = A_stm_init_stmlist($2);}
     | ID LBRACK exp RBRACK ASSIGN exp SEMICOLON { $$ = A_stm_init_sub(S_symbol($1),$3,$6);}
     ;
 
-exp: ID { $$ = A_exp_init_id(S_symbol($1));}
-    | exp LBRACK exp RBRACK { $$ = A_exp_init_sub($1,$3);}
-    | exp DOT LENGTH { $$ = A_exp_init_length($1);}
-    /* TODO: only suport no args */
-    | exp DOT ID LPAREN RPAREN LBRACE { $$ = A_exp_init_method($1,S_symbol($3));}
+exp:  ID { $$ = A_exp_init_id(S_symbol($1));}
     | INT { $$ = A_exp_init_intval($1);}
     | TRUE { $$ = A_exp_init_boolval(true);}
     | FALSE { $$ = A_exp_init_boolval(false);}
     | THIS { $$ = A_exp_init_this();}
+    | NEW ID LPAREN RPAREN {$$ = A_exp_init_newid(S_symbol($2));}
     | NEW INT_ID LBRACK exp RBRACK { $$ = A_exp_init_array($4);}
-    | NEW ID LBRACK RBRACK {$$ = A_exp_init_newid(S_symbol($2));}
     | REVERSE exp { $$ = A_exp_init_reverse($2);}
     | LBRACK exp RBRACK {$$ = A_exp_init_exp($2);}
     | exp PLUS exp %prec PLUS { $$ = A_exp_init_op($1,A_plus,$3);}
@@ -152,6 +147,10 @@ exp: ID { $$ = A_exp_init_id(S_symbol($1));}
     | exp TIMES exp %prec TIMES { $$ = A_exp_init_op($1,A_times,$3);}
     | exp AND exp %prec AND { $$ = A_exp_init_op($1,A_and,$3);}
     | exp LT exp %prec LT { $$ = A_exp_init_op($1,A_lt,$3);}
+    | exp LBRACK exp RBRACK { $$ = A_exp_init_sub($1,$3);}
+    | exp DOT LENGTH { $$ = A_exp_init_length($1);}
+    /* TODO: only suport no args */
+    | exp DOT ID LPAREN RPAREN { $$ = A_exp_init_method($1,S_symbol($3));}
     ;
 
 
