@@ -102,7 +102,7 @@ struct A_type_{
 
 
 struct A_stm_ {
-    enum {A_stm_stms,A_stm_if_else,A_stm_loop,A_stm_print,A_stm_assign,A_stm_sub} kind;
+    enum {A_stm_stms,A_stm_if_else,A_stm_loop,A_stm_print,A_stm_assign,A_stm_sub,A_stm_var_dec} kind;
     union{
         struct{A_stm_list stms;} stms;
         struct{A_exp cond; A_stm yes; A_stm no;} cond;
@@ -110,6 +110,7 @@ struct A_stm_ {
         struct{A_exp out;} print;
         struct{S_sym name; A_exp val;} assign;
         struct{S_sym name; A_exp sub;A_exp val;} sub;
+        struct{A_var_dec var;} var;
     } u;
     S_table tab;
 };
@@ -142,7 +143,7 @@ A_goal A_goal_init(A_main,A_class_list);
 A_main A_main_init(S_sym,S_sym,A_stm);
 A_class A_class_init(S_sym,S_sym,A_var_dec_list,A_method_list);
 A_var_dec A_var_dec_init(A_type,S_sym);
-A_method A_method_init(A_type,S_sym,A_arg_dec_list,A_var_dec_list,A_stm_list,A_exp);
+A_method A_method_init(A_type,S_sym,A_arg_dec_list,A_stm_list,A_exp);
 A_arg_dec A_arg_dec_init(A_type,S_sym);
 
 A_type A_type_init_int();
@@ -157,6 +158,7 @@ A_stm A_stm_init_loop(A_exp,A_stm);
 A_stm A_stm_init_print(A_exp);
 A_stm A_stm_init_assign(S_sym,A_exp);
 A_stm A_stm_init_sub(S_sym,A_exp,A_exp);
+A_stm A_stm_init_var(A_var_dec);
 
 A_exp A_exp_init_op(A_exp,A_op,A_exp);
 A_exp A_exp_init_sub(A_exp,A_exp);
@@ -171,18 +173,23 @@ A_exp A_exp_init_newid(S_sym);
 A_exp A_exp_init_reverse(A_exp);
 A_exp A_exp_init_exp(A_exp);
 
+A_class_list A_class_list_init_null();
 A_class_list A_class_list_init_class(A_class c);
 A_class_list A_class_list_init_classes(A_class c,A_class_list next);
 
+A_stm_list A_stm_list_init_null();
 A_stm_list A_stm_list_init_stm(A_stm s);
 A_stm_list A_stm_list_init_stms(A_stm s,A_stm_list next);
 
+A_var_dec_list A_var_dec_list_init_null();
 A_var_dec_list A_var_dec_list_init_var(A_var_dec val);
 A_var_dec_list A_var_dec_list_init_vars(A_var_dec val,A_var_dec_list next);
 
+A_arg_dec_list A_arg_dec_list_init_null();
 A_arg_dec_list A_arg_dec_list_init_arg(A_arg_dec arg);
 A_arg_dec_list A_arg_dec_list_init_args(A_arg_dec arg,A_arg_dec_list next);
 
+A_method_list A_method_list_init_null();
 A_method_list A_method_list_init_method(A_method val);
 A_method_list A_method_list_init_methods(A_method val,A_method_list next);
 
