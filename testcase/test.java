@@ -1,7 +1,5 @@
-public class test{
+class test{
 	public static void main(String[] a){
-        int b=1;
-		System.out.println("hello,world");
+		System.out.println(1234);
 	}
 }
-

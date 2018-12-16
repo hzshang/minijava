@@ -4,3 +4,6 @@ a.out
 y.tab.[ch]
 *.output
 lex.yy.c
+parse
+*xml
+minijava.tab.c

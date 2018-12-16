@@ -75,29 +75,46 @@ void yyerror(string s){
 
 %%
 
-program: goal {root = $1;}
+program: goal  {root = $1;}
+    ;
 
 goal: main classes { $$ = A_goal_init($1,$2);}
+    ;
 
 main: CLASS ID LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING_ID LBRACK RBRACK ID RPAREN LBRACE stm RBRACE RBRACE {$$ = A_main_init(S_symbol($2),S_symbol($12),$15);}
+    ;
 
-classes: class { $$ = A_class_list_init_class($1);}
-        | class classes { $$ = A_class_list_init_classes($1,$2);}
+classes:  class { $$ = A_class_list_init_class($1);}
+    | class classes { $$ = A_class_list_init_classes($1,$2);}
+    | {$$ = A_class_list_init_null();}
+    ;
+
 /*TODO only support no extend */
 class: CLASS ID LBRACE vars methods RBRACE { $$ = A_class_init(S_symbol($2),NULL,$4,$5);}
-
+    ;
 methods: method { $$ = A_method_list_init_method($1);}
     | method methods {$$ = A_method_list_init_methods($1,$2);}
+    | { $$ = A_method_list_init_null();}
+    ;
 method: PUBLIC type ID LPAREN args RPAREN LBRACE vars stms RETURN exp SEMICOLON RBRACE {$$ = A_method_init($2,S_symbol($3),$5,$8,$9,$11);}
+    ;
 
 args:  arg {$$ = A_arg_dec_list_init_arg($1);}
     | arg args {$$ = A_arg_dec_list_init_args($1,$2);}
+    | { $$ = A_arg_dec_list_init_null();}
+    ;
+
 /* TODO: only support one arg*/
 arg: type ID {$$ = A_arg_dec_init($1,S_symbol($2));}
+    ;
 
 vars:  var { $$ = A_var_dec_list_init_var($1);}
     | var vars {$$ = A_var_dec_list_init_vars($1,$2);}
+    | {$$ = A_var_dec_list_init_null();}
+    ;
+
 var: type ID SEMICOLON { $$ = A_var_dec_init($1,S_symbol($2));}
+    ;
 
 type: INT_ID {$$ = A_type_init_int();}
     | STRING_ID {$$ = A_type_init_string();}
@@ -106,13 +123,15 @@ type: INT_ID {$$ = A_type_init_int();}
 
 stms: stm {$$ = A_stm_list_init_stm($1);}
     | stm stms {$$ = A_stm_list_init_stms($1,$2);}
-
+    | {$$ = A_stm_list_init_null();}
+    ;
 stm: LBRACE stms RBRACE {$$ = A_stm_init_stmlist($2);}
     | IF LPAREN exp RPAREN stm ELSE stm {$$ = A_stm_init_cond($3,$5,$7);}
     | WHILE LPAREN exp RPAREN stm { $$ = A_stm_init_loop($3,$5);}
     | PRINT LPAREN exp RPAREN SEMICOLON {$$ = A_stm_init_print($3);}
     | ID ASSIGN exp SEMICOLON {$$ = A_stm_init_assign(S_symbol($1),$3);}
     | ID LBRACK exp RBRACK ASSIGN exp SEMICOLON { $$ = A_stm_init_sub(S_symbol($1),$3,$6);}
+    ;
 
 exp: ID { $$ = A_exp_init_id(S_symbol($1));}
     | exp LBRACK exp RBRACK { $$ = A_exp_init_sub($1,$3);}
@@ -127,11 +146,12 @@ exp: ID { $$ = A_exp_init_id(S_symbol($1));}
     | NEW ID LBRACK RBRACK {$$ = A_exp_init_newid(S_symbol($2));}
     | REVERSE exp { $$ = A_exp_init_reverse($2);}
     | LBRACK exp RBRACK {$$ = A_exp_init_exp($2);}
-    | exp PLUS exp { $$ = A_exp_init_op($1,A_plus,$3);}
-    | exp MINUS exp { $$ = A_exp_init_op($1,A_minus,$3);}
-    | exp TIMES exp { $$ = A_exp_init_op($1,A_times,$3);}
-    | exp AND exp { $$ = A_exp_init_op($1,A_and,$3);}
-    | exp LT exp { $$ = A_exp_init_op($1,A_lt,$3);}
-
+    | exp PLUS exp %prec PLUS { $$ = A_exp_init_op($1,A_plus,$3);}
+    /* TODO: not support -132 */
+    | exp MINUS exp %prec MINUS { $$ = A_exp_init_op($1,A_minus,$3);}
+    | exp TIMES exp %prec TIMES { $$ = A_exp_init_op($1,A_times,$3);}
+    | exp AND exp %prec AND { $$ = A_exp_init_op($1,A_and,$3);}
+    | exp LT exp %prec LT { $$ = A_exp_init_op($1,A_lt,$3);}
+    ;
 
 

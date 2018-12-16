@@ -273,3 +273,26 @@ A_method_list A_method_list_init_methods(A_method val,A_method_list next){
     return l;
 }
 
+A_class_list A_class_list_init_null(){
+    return NULL;
+}
+
+A_method_list A_method_list_init_null(){
+    return NULL;
+}
+
+A_var_dec_list A_var_dec_list_init_null(){
+    return NULL;
+}
+
+A_arg_dec_list A_arg_dec_list_init_null(){
+    return NULL;
+}
+A_stm_list A_stm_list_init_null(){
+    return NULL;
+}
+
+
+
+
+

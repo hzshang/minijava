@@ -1,5 +1,5 @@
 CC=gcc
-
+CFLAGS=-D YYDEBUG
 all: sym.o absyn.o check.o error.o y.tab.o lex.yy.o util.o
 	gcc $^ 
 
@@ -10,10 +10,10 @@ lex.yy.c: minijava.lex
 	lex $^
 	
 lex.yy.o: lex.yy.c
-	gcc -c $^ -o $@
+	gcc $(CFLAGS) -c $^ -o $@
 
 y.tab.o: y.tab.c
-	gcc -c $^ -o $@
+	gcc $(CFLAGS) -c $^ -o $@
 
 y.tab.c: minijava.y
 	yacc -dv $^

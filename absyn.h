@@ -171,18 +171,23 @@ A_exp A_exp_init_newid(S_sym);
 A_exp A_exp_init_reverse(A_exp);
 A_exp A_exp_init_exp(A_exp);
 
+A_class_list A_class_list_init_null();
 A_class_list A_class_list_init_class(A_class c);
 A_class_list A_class_list_init_classes(A_class c,A_class_list next);
 
+A_stm_list A_stm_list_init_null();
 A_stm_list A_stm_list_init_stm(A_stm s);
 A_stm_list A_stm_list_init_stms(A_stm s,A_stm_list next);
 
+A_var_dec_list A_var_dec_list_init_null();
 A_var_dec_list A_var_dec_list_init_var(A_var_dec val);
 A_var_dec_list A_var_dec_list_init_vars(A_var_dec val,A_var_dec_list next);
 
+A_arg_dec_list A_arg_dec_list_init_null();
 A_arg_dec_list A_arg_dec_list_init_arg(A_arg_dec arg);
 A_arg_dec_list A_arg_dec_list_init_args(A_arg_dec arg,A_arg_dec_list next);
 
+A_method_list A_method_list_init_null();
 A_method_list A_method_list_init_method(A_method val);
 A_method_list A_method_list_init_methods(A_method val,A_method_list next);
 
