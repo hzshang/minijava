@@ -6,4 +6,6 @@ y.tab.[ch]
 lex.yy.c
 parse
 *xml
+*html
+check
 minijava.tab.c
