@@ -37,6 +37,7 @@ void yyerror(string s){
     A_stm_list stm_list;
 
     A_exp exp;
+    A_exp_list exp_list;
 }
 %token <sval> ID STRING
 %token <ival> INT
@@ -54,15 +55,15 @@ void yyerror(string s){
 %type <class_list> classes
 %type <method> method
 %type <method_list> methods
-%type <arg_dec> arg arg_next
-%type <arg_dec_list> args arg_nexts
+%type <arg_dec> arg_dec arg_dec_next
+%type <arg_dec_list>arg_dec_nexts arg_dec_next_more arg_decs
 %type <var_dec> var
 %type <var_dec_list> vars
 %type <type> type
 %type <stm> stm
 %type <stm_list> stms
-%type <exp> exp
-
+%type <exp> exp exp_next
+%type <exp_list> exps exp_nexts exp_next_more
 
 /* 先执行的排在下面*/
 %nonassoc LT AND
@@ -90,30 +91,37 @@ classes: {$$ = A_class_list_init_null();}
     ;
 
 /*TODO: only support no extend */
-/*TODO: only support no args */
+/*TODO: only support no arg_decs */
 class: CLASS ID LBRACE vars methods RBRACE { $$ = A_class_init(S_symbol($2),NULL,$4,$5);}
     ;
 methods: { $$ = A_method_list_init_null();}
     | method methods {$$ = A_method_list_init_methods($1,$2);}
     ;
-method: PUBLIC type ID LPAREN args RPAREN LBRACE stms RETURN exp SEMICOLON RBRACE {$$ = A_method_init($2,S_symbol($3),$5,$8,$10);}
+/*
+method: PUBLIC type ID LPAREN arg arg_dec_next_more RPAREN LBRACE stms RETURN exp SEMICOLON RBRACE {$$ = A_method_init($2,S_symbol($3),A_arg_dec_list_init_arg_decs($5,$6),$9,$11);}
+    | PUBLIC type ID LPAREN RPAREN LBRACE stms RETURN exp SEMICOLON RBRACE {$$ = A_method_init($2,S_symbol($3),A_arg_dec_list_init_null(),$7,$9);}
+    | PUBLIC type ID LPAREN arg RPAREN LBRACE stms RETURN exp SEMICOLON RBRACE {$$ = A_method_init($2,S_symbol($3),A_arg_dec_list_init_arg($5),$8,$10);}
+    ;
+*/
+method: PUBLIC type ID LPAREN arg_decs RPAREN LBRACE stms RETURN exp SEMICOLON RBRACE {$$ = A_method_init($2,S_symbol($3),$5,$8,$10);}
     ;
 
-args: arg args {$$ = A_arg_dec_list_init_args($1,$2);}
-    | { $$ = A_arg_dec_list_init_null();}
+arg_dec_next: COMMA type ID {$$ = A_arg_dec_init($2,S_symbol($3));}
+
+arg_dec_nexts: {$$ = A_arg_dec_list_init_null();}
+    | arg_dec_next arg_dec_nexts {$$ = A_arg_dec_list_init_arg_decs($1,$2);}
     ;
 
-/* TODO: only support one arg*/
-arg_next: COMMA arg {$$ = $2;}
+arg_dec_next_more: arg_dec_next arg_dec_nexts {$$ = A_arg_dec_list_init_arg_decs($1,$2);}
+    ;
 
-arg_nexts:  arg_next arg_nexts {$$ = A_arg_dec_list_init_args($1,$2);}
+arg_dec: type ID { $$ = A_arg_dec_init($1,S_symbol($2));}
+    ;
+
+/* arg_decs mean 0 ~ N arg dec */
+arg_decs: arg_dec arg_dec_next_more {$$ = A_arg_dec_list_init_arg_decs($1,$2);}
+    | arg_dec {$$ = A_arg_dec_list_init_arg_dec($1);}
     | {$$ = A_arg_dec_list_init_null();}
-    ;
-
-arg: type ID { $$ = A_arg_dec_init($1,S_symbol($2));}
-    ;
-
-args: arg arg_nexts {$$ = A_arg_dec_list_init_args($1,$2);} 
     ;
 
 vars: {$$ = A_var_dec_list_init_null();}
@@ -159,8 +167,23 @@ exp:  ID { $$ = A_exp_init_id(S_symbol($1));}
     | exp LT exp %prec LT { $$ = A_exp_init_op($1,A_lt,$3);}
     | exp LBRACK exp RBRACK { $$ = A_exp_init_sub($1,$3);}
     | exp DOT LENGTH { $$ = A_exp_init_length($1);}
-    /* TODO: only suport no args */
-    | exp DOT ID LPAREN RPAREN { $$ = A_exp_init_method($1,S_symbol($3));}
+    /* ALDO: TODO: only suport no arg_decs */
+    | exp DOT ID LPAREN exps RPAREN { $$ = A_exp_init_method($1,S_symbol($3),$5);}
+    ;
+
+exp_next: COMMA exp {$$ = $2;}
+
+exp_nexts: {$$ = A_exp_list_init_null();}
+    | exp_next exp_nexts {$$ = A_exp_list_init_exps($1,$2);}
+    ;
+
+exp_next_more: exp_next exp_nexts {$$ = A_exp_list_init_exps($1,$2);}
+    ;
+
+/* exps mean 0 ~ N arg */
+exps: exp exp_next_more {$$ = A_exp_list_init_exps($1,$2);}
+    | exp {$$ = A_exp_list_init_exp($1);}
+    | {$$ = A_exp_list_init_null();}
     ;
 
 

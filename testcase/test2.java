@@ -1,9 +1,9 @@
 class BinarySearch{
     public static void main(String[] a){
-        System.out.println(new BS().start());
+        System.out.println(new BS(4,5,6).start(1,2,3));
     }
 }
-
+/*
 class BS{
     public int start(){
         int a;
@@ -26,3 +26,4 @@ class check2{
         return ret;
     }
 }
+*/

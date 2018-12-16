@@ -13,6 +13,7 @@ typedef struct A_stm_* A_stm;
 typedef struct A_stm_list_* A_stm_list;
 
 typedef struct A_exp_* A_exp;
+typedef struct A_exp_list_* A_exp_list;
 
 typedef struct A_goal_* A_goal;
 typedef struct A_main_* A_main;
@@ -126,7 +127,7 @@ struct A_exp_ {
         struct{A_exp a;A_op op; A_exp b;} op;
         struct{A_exp exp;A_exp sub;} sub;
         struct{A_exp exp;} length;
-        struct{A_exp exp;S_sym method;} method;
+        struct{A_exp exp;S_sym method;A_exp_list args;} method;
         struct{int val;} intval;
         struct{bool val;} boolval;
         struct{S_sym name;} id;
@@ -136,6 +137,10 @@ struct A_exp_ {
         struct{A_exp exp;} reverse;
         struct{A_exp exp;} exps;
     } u;
+};
+struct A_exp_list_ {
+    A_exp val;
+    A_exp_list next;
 };
 
 
@@ -163,7 +168,7 @@ A_stm A_stm_init_var(A_var_dec);
 A_exp A_exp_init_op(A_exp,A_op,A_exp);
 A_exp A_exp_init_sub(A_exp,A_exp);
 A_exp A_exp_init_length(A_exp);
-A_exp A_exp_init_method(A_exp,S_sym);
+A_exp A_exp_init_method(A_exp,S_sym,A_exp_list);
 A_exp A_exp_init_intval(int);
 A_exp A_exp_init_boolval(bool);
 A_exp A_exp_init_id(S_sym);
@@ -186,13 +191,28 @@ A_var_dec_list A_var_dec_list_init_var(A_var_dec val);
 A_var_dec_list A_var_dec_list_init_vars(A_var_dec val,A_var_dec_list next);
 
 A_arg_dec_list A_arg_dec_list_init_null();
-A_arg_dec_list A_arg_dec_list_init_arg(A_arg_dec arg);
-A_arg_dec_list A_arg_dec_list_init_args(A_arg_dec arg,A_arg_dec_list next);
+A_arg_dec_list A_arg_dec_list_init_arg_dec(A_arg_dec arg);
+A_arg_dec_list A_arg_dec_list_init_arg_decs(A_arg_dec arg,A_arg_dec_list next);
 
 A_method_list A_method_list_init_null();
 A_method_list A_method_list_init_method(A_method val);
 A_method_list A_method_list_init_methods(A_method val,A_method_list next);
 
+A_exp_list A_exp_list_init_null();
+A_exp_list A_exp_list_init_exp(A_exp);
+A_exp_list A_exp_list_init_exps(A_exp,A_exp_list);
 
+/*
+ * arg_dec 参数声明 用在函数eg: begin(int a,int b) arg_dec 表示 int a
+ * arg_dec_list arg_dec_list 代表 int a,int b
+ *
+ * var 变量声明，被vars和stm使用
+ * vars 目前仅用在类的全局声明
+ * stm 代码块
+ * exp 表达式
+ *
+ * TODO: 
+ * exps 调用函数时的参数 eg: m.begin(1,2,3) args 表示 1,2,3
+ */
 
 #endif /* !ABSYN_H */
