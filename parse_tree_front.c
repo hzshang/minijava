@@ -1,5 +1,7 @@
 #include "stand.h"
 #include "parse_tree.h"
+#define FOUT stdout
+
 #define STEP 2
 #define RSHIFT do{\
     xlen+=STEP;\
@@ -23,13 +25,13 @@ static int xlen = 0;
 static void printf_fmt(string fmt,...){
     va_list ap;
     if(fmt[0]=='\n'){
-        printf("\n%*c",xlen,' ');
+        fprintf(FOUT,"\n%*c",xlen,' ');
         va_start(ap,&fmt[1]);
-        vfprintf(stdout,&fmt[1],ap);
+        vfprintf(FOUT,&fmt[1],ap);
         va_end(ap);
     }else{
         va_start(ap,fmt);
-        vfprintf(stdout,fmt,ap);
+        vfprintf(FOUT,fmt,ap);
         va_end(ap);
     }
 }

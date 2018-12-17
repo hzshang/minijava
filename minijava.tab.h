@@ -98,7 +98,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 15 "minijava.y" /* yacc.c:1909  */
+#line 16 "minijava.y" /* yacc.c:1909  */
 
     int pos;
     int ival;
