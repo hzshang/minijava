@@ -54,7 +54,7 @@ void parse_main(A_main main){
 static inline void parse_class_extends(S_sym ext){
     HEADER("Extends");
     if(!ext)
-        printf_fmt("\n[NULL]");
+        printf_fmt("\nNULL");
     else
         parse_sym(ext);
     FOOT;
@@ -323,7 +323,7 @@ void parse_arg_decs(A_arg_dec_list list){
     HEADER("ArgDeclarationList");
     A_arg_dec_list tmp = list;
     if(!tmp){
-        printf_fmt("\n[NULL]");
+        printf_fmt("\nNULL");
     }else{
         while(tmp){
             parse_arg_dec(tmp->val);
@@ -340,7 +340,7 @@ void parse_var_decs(A_var_dec_list list){
     HEADER("VarDeclarationList");
     A_var_dec_list tmp = list;
     if(!tmp){
-        printf_fmt("\n[NULL]");
+        printf_fmt("\nNULL");
     }else{
         while(tmp){
             parse_var_dec(tmp->val);
@@ -356,7 +356,7 @@ void parse_methods(A_method_list list){
     HEADER("MethodList");
     A_method_list tmp = list;
     if(!tmp){
-        printf_fmt("\n[NULL]");
+        printf_fmt("\nNULL");
     }else{
         while(tmp){
             parse_method(tmp->val);
@@ -371,7 +371,7 @@ void parse_stms(A_stm_list list){
     A_stm_list tmp = list;
     HEADER("StatementList");
     if(!tmp){
-        printf_fmt("\n[NULL]");
+        printf_fmt("\nNULL");
     }else{
         while(tmp){
             parse_stm(tmp->val);
@@ -386,7 +386,7 @@ void parse_exps(A_exp_list list){
     HEADER("ExpList");
     A_exp_list tmp = list;
     if(!tmp){
-        printf_fmt("\n[NULL]");
+        printf_fmt("\nNULL");
     }else{
         while(tmp){
             parse_exp(tmp->val);
@@ -401,7 +401,7 @@ void parse_classes(A_class_list list){
     HEADER("ClassList");
     A_class_list tmp = list;
     if(!tmp){
-        printf_fmt("\n[NULL]");
+        printf_fmt("\nNULL");
     }else{
         while(tmp){
             parse_class(tmp->val);

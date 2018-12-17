@@ -21,6 +21,7 @@ int main(int argc,char* argv[]){
     string fname = argv[1];
     state_reset(fname);
     yyparse();
-    parse_goal(root);    
+    parse_goal(root);
+    printf(";\n");
     return 0;
 }
