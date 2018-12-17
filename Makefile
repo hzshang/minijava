@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-D YYDEBUG -g
+CFLAGS=-D YYDEBUG -g -Wno-varargs
 
 OBJ=minijava.tab.o sym.o absyn.o error.o lex.yy.o util.o parse_tree.o
 all: check parse parse_out

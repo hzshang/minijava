@@ -1,12 +1,22 @@
 #include "stand.h"
 #include "parse_tree.h"
-#define STEP 3
+#define STEP 2
 #define RSHIFT do{\
     xlen+=STEP;\
 }while(0)
 
 #define LSHIFT do{\
     xlen-=STEP;\
+}while(0)
+
+#define HEADER(x) do{\
+    printf_fmt("\n"x"(");\
+    RSHIFT;\
+}while(0)
+
+#define FOOT do{\
+    LSHIFT;\
+    printf_fmt("\n)");\
 }while(0)
 
 static int xlen = 0;
@@ -25,30 +35,25 @@ static void printf_fmt(string fmt,...){
 }
 
 void parse_goal(A_goal root){
-    printf_fmt("Goal(");
-    RSHIFT;
+    HEADER("Goal");
     parse_main(root->main);
     printf_fmt(",");
     parse_classes(root->classes);
-    LSHIFT;
-    printf_fmt("\n)\n");
+    FOOT;
 }
 
 void parse_main(A_main main){
-    printf_fmt("\nMainClass(");
-    RSHIFT;
+    HEADER("MainClass");
     parse_sym(main->id);
     printf_fmt(",");
     parse_sym(main->arg_id);
     printf_fmt(",");
     parse_stm(main->stm);
-    LSHIFT;
-    printf_fmt("\n)");
+    FOOT;
 }
 
 void parse_class(A_class cls){
-    printf_fmt("\nClass(");
-    RSHIFT;
+    HEADER("Class");
     parse_sym(cls->id);
     printf_fmt(",");
     if(cls->extend)
@@ -59,14 +64,12 @@ void parse_class(A_class cls){
     parse_var_decs(cls->vars);
     printf_fmt(",");
     parse_methods(cls->methods);
-    LSHIFT;
-    printf_fmt("\n)");
+    FOOT;
 }
 
 
 static inline void parse_exp_op(A_exp a,A_op op,A_exp b){
-    printf_fmt("\nExpOp(");
-    RSHIFT;
+    HEADER("ExpOp");
     switch(op){
         case A_and:
             printf_fmt("\n&&");
@@ -91,67 +94,51 @@ static inline void parse_exp_op(A_exp a,A_op op,A_exp b){
     parse_exp(a);
     printf_fmt(",");
     parse_exp(b);
-    LSHIFT;
-    printf_fmt(")");
+    FOOT;
 }
 static inline void parse_exp_uminus(A_exp a){
-    printf_fmt("\nExpUminus(");
-    RSHIFT;
+    HEADER("ExpUminus");
     parse_exp(a);
-    LSHIFT;
-    printf_fmt("\n)");
+    FOOT;
 }
 static inline void parse_exp_sub(A_exp val,A_exp sub){
-    printf_fmt("\nExpSub");
-    RSHIFT;
+    HEADER("ExpSub");
     parse_exp(val);
     printf(",");
     parse_exp(sub);
-    LSHIFT;
-    printf_fmt("\n)");
+    FOOT;
 }
 static inline void parse_exp_length(A_exp exp){
-    printf_fmt("\nExpLength");
-    RSHIFT;
+    HEADER("ExpLength");
     parse_exp(exp);
-    LSHIFT;
-    printf_fmt("\n)");
+    FOOT;
 }
 static inline void parse_exp_method(A_exp exp,S_sym name,A_exp_list exps){
-    printf_fmt("\nExpMethod(");
-    RSHIFT;
+    HEADER("ExpMethod");
     parse_exp(exp);
     printf_fmt(",");
     parse_sym(name);
     printf_fmt(",");
     parse_exps(exps);
-    LSHIFT;
-    printf_fmt("\n)");
+    FOOT;
 }
 static inline void parse_exp_array(A_exp size){
-    printf_fmt("\nExpIntArray(");
-    RSHIFT;
+    HEADER("ExpIntArray");
     parse_exp(size);
-    LSHIFT;
-    printf_fmt("\n)");
+    FOOT;
 }
 static inline void parse_exp_reverse(A_exp exp){
-    printf_fmt("\nExpReverse(");
-    RSHIFT;
+    HEADER("ExpReverse");
     parse_exp(exp);
-    LSHIFT;
-    printf_fmt("\n)");
+    FOOT;
 }
 static inline void parse_exp_new_id(S_sym name){
-    printf_fmt("\nExpNew(");
-    RSHIFT;
+    HEADER("ExpNew");
     parse_sym(name);
-    LSHIFT;
-    printf_fmt("\n)");
+    FOOT;
 }
 void parse_exp(A_exp exp){
-    printf_fmt("\nExp(");
-    RSHIFT;
+    HEADER("Exp");
     switch(exp->kind){
         case A_exp_ops:
             parse_exp_op(exp->u.op.a,exp->u.op.op,exp->u.op.b);
@@ -199,50 +186,65 @@ void parse_exp(A_exp exp){
             assert(false);
             break;
     }
-    LSHIFT;
-    printf_fmt("\n)");
+    FOOT;
 }
-
+static inline void parse_stm_if_else(A_exp cond,A_stm yes,A_stm no){
+    HEADER("StmIfElse");
+    parse_exp(cond);
+    printf_fmt(",");
+    parse_stm(yes);
+    printf_fmt(",");
+    parse_stm(no);
+    FOOT;
+}
+static inline void parse_stm_while(A_exp cond,A_stm stm){
+    HEADER("StmWhile");
+    parse_exp(cond);
+    printf_fmt(",");
+    parse_stm(stm);
+    FOOT;
+}
+static inline void parse_stm_print(A_exp out){
+    HEADER("StmPrint");
+    parse_exp(out);
+    FOOT;
+}
+static inline void parse_stm_assign(S_sym name,A_exp exp){
+    HEADER("StmAssign");
+    parse_sym(name);
+    printf_fmt(",");
+    parse_exp(exp);
+    FOOT;
+}
+static inline void parse_stm_sub(S_sym name,A_exp idx,A_exp val){
+    HEADER("StmSubAssign");
+    parse_sym(name);
+    printf_fmt(",");
+    parse_exp(idx);
+    printf_fmt(",");
+    parse_exp(val);
+    FOOT;
+}
 void parse_stm(A_stm stm){
-    printf_fmt("\nStatement(");
-    RSHIFT;
+    HEADER("Statement");
     switch(stm->kind){
         case A_stm_stms:
             parse_stms(stm->u.stms.stms);
             break;
         case A_stm_if_else:
-            printf_fmt("if(");
-            parse_exp(stm->u.cond.cond);
-            printf_fmt(")");
-            parse_stm(stm->u.cond.yes);
-            printf_fmt("else");
-            parse_stm(stm->u.cond.no);
+            parse_stm_if_else(stm->u.cond.cond,stm->u.cond.yes,stm->u.cond.no);
             break;
         case A_stm_loop:
-            printf_fmt("\nwhile(");
-            RSHIFT;
-            parse_exp(stm->u.loop.cond);
-            printf_fmt(")");
-            parse_stm(stm->u.loop.stm);
+            parse_stm_while(stm->u.loop.cond,stm->u.loop.stm);
             break;
         case A_stm_print:
-            printf_fmt("\nprint(");
-            RSHIFT;
-            parse_exp(stm->u.print.out);
-            LSHIFT;
-            printf_fmt("\n)");
+            parse_stm_print(stm->u.print.out);
             break;
         case A_stm_assign:
-            parse_sym(stm->u.assign.name);
-            printf_fmt("=");
-            parse_exp(stm->u.assign.val);
+            parse_stm_assign(stm->u.assign.name,stm->u.assign.val);
             break;
         case A_stm_sub:
-            parse_sym(stm->u.sub.name);
-            printf_fmt("[");
-            parse_exp(stm->u.sub.sub);
-            printf_fmt("]=");
-            parse_exp(stm->u.sub.val);
+            parse_stm_sub(stm->u.sub.name,stm->u.sub.sub,stm->u.sub.val);
             break;
         case A_stm_var_dec:
             parse_var_dec(stm->u.var_dec.var_dec);
@@ -251,13 +253,11 @@ void parse_stm(A_stm stm){
             assert(false);
             break;
     }
-    LSHIFT;
-    printf_fmt("\n)");
+    FOOT;
 }
 
 void parse_method(A_method m){
-    printf_fmt("\nMethod(");
-    RSHIFT;
+    HEADER("Method");
     parse_type(m->type);
     printf_fmt(",");
     parse_sym(m->name);
@@ -267,8 +267,7 @@ void parse_method(A_method m){
     parse_stms(m->stms);
     printf_fmt(",");
     parse_exp(m->ret);
-    LSHIFT;
-    printf_fmt(")");
+    FOOT;
 }
 void parse_type(A_type type){
     printf_fmt("\n");
@@ -297,37 +296,28 @@ void parse_type(A_type type){
 }
 
 void parse_var_dec(A_var_dec var_dec){
-    printf_fmt("\nVarDeclaration(");
-    RSHIFT;
+    HEADER("VarDeclaration");
     parse_type(var_dec->type);
     printf_fmt(",");
     parse_sym(var_dec->name);
-    LSHIFT;
-    printf_fmt("\n)");
+    FOOT;
 }
 
 void parse_arg_dec(A_arg_dec arg_dec){
-    printf_fmt("\nArgDeclaration(");
-    RSHIFT;
+    HEADER("ArgDeclaration");
     parse_type(arg_dec->type);
     printf_fmt(",");
     parse_sym(arg_dec->name);
-    LSHIFT;
-    printf_fmt("\n)");
+    FOOT;
 }
 
 void parse_sym(S_sym sym){
     printf_fmt("\n%s",sym->name);
-    /*
-    printf_fmt("\nSymbol(%s)",sym->name);
-    printf_fmt("\n");
-    */
 }
 
 void parse_arg_decs(A_arg_dec_list list){
+    HEADER("ArgDeclarationList");
     A_arg_dec_list tmp = list;
-    printf_fmt("\nArgDeclarationList(");
-    RSHIFT;
     if(!tmp){
         printf_fmt("\n[NULL]");
     }else{
@@ -338,15 +328,13 @@ void parse_arg_decs(A_arg_dec_list list){
             tmp = tmp->next;
         }
     }
-    LSHIFT;
-    printf_fmt("\n)");
+    FOOT;
 }
 
 
 void parse_var_decs(A_var_dec_list list){
+    HEADER("VarDeclarationList");
     A_var_dec_list tmp = list;
-    printf_fmt("\nVarDeclarationList(");
-    RSHIFT;
     if(!tmp){
         printf_fmt("\n[NULL]");
     }else{
@@ -357,14 +345,12 @@ void parse_var_decs(A_var_dec_list list){
             tmp = tmp->next;
         }
     }
-    LSHIFT;
-    printf_fmt("\n)");
+    FOOT;
 }
 
 void parse_methods(A_method_list list){
+    HEADER("MethodList");
     A_method_list tmp = list;
-    printf_fmt("\nMethodList(");
-    RSHIFT;
     if(!tmp){
         printf_fmt("\n[NULL]");
     }else{
@@ -375,13 +361,11 @@ void parse_methods(A_method_list list){
             tmp = tmp->next;
         }
     }
-    LSHIFT;
-    printf_fmt("\n)");
+    FOOT;
 }
 void parse_stms(A_stm_list list){
     A_stm_list tmp = list;
-    printf_fmt("\nStatementList(");
-    RSHIFT;
+    HEADER("StatementList");
     if(!tmp){
         printf_fmt("\n[NULL]");
     }else{
@@ -392,13 +376,11 @@ void parse_stms(A_stm_list list){
             tmp = tmp->next;
         }
     }
-    LSHIFT;
-    printf_fmt("\n)");
+    FOOT;
 }
 void parse_exps(A_exp_list list){
+    HEADER("ExpList");
     A_exp_list tmp = list;
-    printf_fmt("\nExpList(");
-    RSHIFT;
     if(!tmp){
         printf_fmt("\n[NULL]");
     }else{
@@ -409,13 +391,11 @@ void parse_exps(A_exp_list list){
             tmp = tmp->next;
         }
     }
-    LSHIFT;
-    printf_fmt("\n)");
+    FOOT;
 }
 void parse_classes(A_class_list list){
+    HEADER("ClassList");
     A_class_list tmp = list;
-    printf_fmt("\nClassList(");
-    RSHIFT;
     if(!tmp){
         printf_fmt("\n[NULL]");
     }else{
@@ -426,23 +406,18 @@ void parse_classes(A_class_list list){
             tmp = tmp->next;
         }
     }
-    LSHIFT;
-    printf_fmt("\n)");
+    FOOT;
 }
-
-
 void parse_op_reverse(A_exp a){
-    printf_fmt("\nReverse(");
-    RSHIFT;
+    HEADER("Reverse");
     parse_exp(a);
-    LSHIFT;
-    printf_fmt("\n)");
+    FOOT;
+}
+void parse_op_uminus(A_exp a){
+    HEADER("Uminus");
+    parse_exp(a);
+    FOOT;
 }
 
-void parse_op_uminus(A_exp a){
-    printf_fmt("\nUminus(");
-    RSHIFT;
-    parse_exp(a);
-    LSHIFT;
-    printf_fmt("\n)");
-}
+
+

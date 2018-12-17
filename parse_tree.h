@@ -34,8 +34,15 @@ void parse_arg_decs(A_arg_dec_list list);
 
 void parse_sym(S_sym sym);
 
-
-
+static void printf_fmt(string fmt,...);
+static inline void parse_exp_op(A_exp a,A_op op,A_exp b);
+static inline void parse_exp_uminus(A_exp a);
+static inline void parse_exp_sub(A_exp val,A_exp sub);
+static inline void parse_exp_length(A_exp exp);
+static inline void parse_exp_method(A_exp exp,S_sym name,A_exp_list exps);
+static inline void parse_exp_array(A_exp size);
+static inline void parse_exp_reverse(A_exp exp);
+static inline void parse_exp_new_id(S_sym name);
 
 
 

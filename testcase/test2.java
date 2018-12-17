@@ -22,6 +22,9 @@ class check2{
         }else{
             ret = 0;
         }
+        while(1){
+            System.out.println(new BS());
+        }
         return ret;
     }
 }
