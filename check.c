@@ -1,9 +1,9 @@
 #include "stand.h"
 #include "util.h"
-#include "tokens.h"
+#include "absyn.h"
+#include "minijava.tab.h"
 #include "error.h"
-
-
+extern A_goal root;
 YYSTYPE yylval;
 extern int line_num;
 extern int yylex();
@@ -22,8 +22,8 @@ int main(int argc,char* argv[]){
     }
     yydebug = argv[2]?atoi(argv[2]):0;
     string fname = argv[1];
-    int tok;
     state_reset(fname);
     yyparse();
+
     return 0;
 }

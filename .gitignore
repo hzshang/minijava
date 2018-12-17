@@ -9,3 +9,7 @@ parse
 *html
 check
 minijava.tab.c
+.gdb_history
+log
+parse_out
+

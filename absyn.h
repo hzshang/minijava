@@ -34,8 +34,8 @@ typedef struct A_type_* A_type;
 typedef enum{A_and,A_plus,A_minus,A_times,A_lt} A_op;
 
 struct A_goal_ {
-    A_main mc;
-    A_class_list cls;
+    A_main main;
+    A_class_list classes;
     S_table tab;
 };
 
@@ -73,7 +73,6 @@ struct A_method_ {
     A_type type;
     S_sym name;
     A_arg_dec_list args;
-    A_var_dec_list vars;
     A_stm_list stms;
     A_exp ret;
     S_table tab;
@@ -111,7 +110,7 @@ struct A_stm_ {
         struct{A_exp out;} print;
         struct{S_sym name; A_exp val;} assign;
         struct{S_sym name; A_exp sub;A_exp val;} sub;
-        struct{A_var_dec var;} var;
+        struct{A_var_dec var_dec;} var_dec;
     } u;
     S_table tab;
 };
@@ -135,7 +134,7 @@ struct A_exp_ {
         struct{A_exp size;} array;
         struct{S_sym name;} new_id;
         struct{A_exp exp;} reverse;
-        struct{A_exp exp;} exps;
+        struct{A_exp exp;} exp;
         struct{A_exp exp;} uminus;
     } u;
 };
@@ -188,6 +187,7 @@ A_stm_list A_stm_list_init_null();
 A_stm_list A_stm_list_init_stm(A_stm s);
 A_stm_list A_stm_list_init_stms(A_stm s,A_stm_list next);
 
+/*TODO: not support int a,b,c; */
 A_var_dec_list A_var_dec_list_init_null();
 A_var_dec_list A_var_dec_list_init_var(A_var_dec val);
 A_var_dec_list A_var_dec_list_init_vars(A_var_dec val,A_var_dec_list next);
