@@ -213,6 +213,12 @@ A_exp A_exp_init_exp(A_exp exp){
     e->u.exps.exp = exp;
     return e;
 }
+A_exp A_exp_init_uminus(A_exp exp){
+    A_exp e = safe_malloc(sizeof(*e));
+    e->kind = A_exp_uminus;
+    e->u.uminus.exp = exp;
+    return e;
+}
 
 A_class_list A_class_list_init_class(A_class c){
     A_class_list l = safe_malloc(sizeof(*l));

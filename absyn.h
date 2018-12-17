@@ -122,7 +122,7 @@ struct A_stm_list_{
 };
 
 struct A_exp_ {
-    enum{A_exp_ops,A_exp_sub,A_exp_length,A_exp_method,A_exp_int,A_exp_bool,A_exp_id,A_exp_this,A_exp_array,A_exp_new_id,A_exp_reverse,A_exp_exp} kind;
+    enum{A_exp_ops,A_exp_sub,A_exp_length,A_exp_method,A_exp_int,A_exp_bool,A_exp_id,A_exp_this,A_exp_array,A_exp_new_id,A_exp_reverse,A_exp_exp,A_exp_uminus} kind;
     union{
         struct{A_exp a;A_op op; A_exp b;} op;
         struct{A_exp exp;A_exp sub;} sub;
@@ -136,6 +136,7 @@ struct A_exp_ {
         struct{S_sym name;} new_id;
         struct{A_exp exp;} reverse;
         struct{A_exp exp;} exps;
+        struct{A_exp exp;} uminus;
     } u;
 };
 struct A_exp_list_ {
@@ -177,6 +178,7 @@ A_exp A_exp_init_array(A_exp);
 A_exp A_exp_init_newid(S_sym);
 A_exp A_exp_init_reverse(A_exp);
 A_exp A_exp_init_exp(A_exp);
+A_exp A_exp_init_uminus(A_exp);
 
 A_class_list A_class_list_init_null();
 A_class_list A_class_list_init_class(A_class c);
@@ -212,7 +214,7 @@ A_exp_list A_exp_list_init_exps(A_exp,A_exp_list);
  * exp 表达式
  *
  * TODO: 
- * exps 调用函数时的参数 eg: m.begin(1,2,3) args 表示 1,2,3
+ * new ID() 允许传参
  */
 
 #endif /* !ABSYN_H */

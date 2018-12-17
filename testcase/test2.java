@@ -1,10 +1,9 @@
-class BinarySearch{
+class BinarySearch {
     public static void main(String[] a){
-        System.out.println(new BS(4,5,6).start(1,2,3));
+        System.out.println(new BS().start(-1,-2,-3));
     }
 }
-/*
-class BS{
+class BS extends CS{
     public int start(){
         int a;
         System.out.println(a);
@@ -18,7 +17,7 @@ class check2{
         int a;
         int ret;
         a = 1;
-        if(a){
+        if(!a){
             ret = 1;
         }else{
             ret = 0;
@@ -26,4 +25,3 @@ class check2{
         return ret;
     }
 }
-*/
