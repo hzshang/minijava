@@ -4,7 +4,7 @@
 //#include "tokens.h"
 #include "error.h"
 #include "absyn.h"
-#include "y.tab.h"
+#include "minijava.tab.h"
 int state_pos = 1;
 
 int yywrap(void){
