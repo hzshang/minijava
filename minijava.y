@@ -47,7 +47,7 @@ void yyerror(string s){
     LBRACE RBRACE EXTENDS SEMICOLON BOOLEAN IF 
     WHILE PRINT LENGTH DOT THIS NEW ASSIGN PLUS MINUS TIMES 
     DIVIDE EQ LE LT GE GT AND REVERSE TRUE FALSE ELSE COMMA MAIN 
-    RETURN INT_ID BOOLEAN_ID STRING_ID
+    RETURN INT_ID BOOLEAN_ID STRING_ID UMINUS
 
 %type <goal> goal
 %type <main> main
@@ -69,6 +69,7 @@ void yyerror(string s){
 %nonassoc LT AND
 %left PLUS MINUS
 %left TIMES
+%left UMINUS
 
 %right REVERSE
 %left LBRACK
@@ -90,19 +91,16 @@ classes: {$$ = A_class_list_init_null();}
     | class classes { $$ = A_class_list_init_classes($1,$2);}
     ;
 
-/*TODO: only support no extend */
-/*TODO: only support no arg_decs */
+/*DONE:  only support no extend */
+/*DONE:  only support no arg_decs */
+
 class: CLASS ID LBRACE vars methods RBRACE { $$ = A_class_init(S_symbol($2),NULL,$4,$5);}
+    | CLASS ID EXTENDS ID LBRACE vars methods RBRACE { $$ = A_class_init(S_symbol($2),S_symbol($4),$6,$7);}
     ;
 methods: { $$ = A_method_list_init_null();}
     | method methods {$$ = A_method_list_init_methods($1,$2);}
     ;
-/*
-method: PUBLIC type ID LPAREN arg arg_dec_next_more RPAREN LBRACE stms RETURN exp SEMICOLON RBRACE {$$ = A_method_init($2,S_symbol($3),A_arg_dec_list_init_arg_decs($5,$6),$9,$11);}
-    | PUBLIC type ID LPAREN RPAREN LBRACE stms RETURN exp SEMICOLON RBRACE {$$ = A_method_init($2,S_symbol($3),A_arg_dec_list_init_null(),$7,$9);}
-    | PUBLIC type ID LPAREN arg RPAREN LBRACE stms RETURN exp SEMICOLON RBRACE {$$ = A_method_init($2,S_symbol($3),A_arg_dec_list_init_arg($5),$8,$10);}
-    ;
-*/
+
 method: PUBLIC type ID LPAREN arg_decs RPAREN LBRACE stms RETURN exp SEMICOLON RBRACE {$$ = A_method_init($2,S_symbol($3),$5,$8,$10);}
     ;
 
@@ -134,6 +132,7 @@ var: type ID SEMICOLON { $$ = A_var_dec_init($1,S_symbol($2));}
 type: INT_ID {$$ = A_type_init_int();}
     | STRING_ID {$$ = A_type_init_string();}
     | BOOLEAN_ID {$$ = A_type_init_boolean();}
+    | INT_ID LBRACK RBRACK {$$ = A_type_init_array();}
     | ID {$$ = A_type_init_sym(S_symbol($1));}
     ;
 
@@ -158,16 +157,17 @@ exp:  ID { $$ = A_exp_init_id(S_symbol($1));}
     | NEW ID LPAREN RPAREN {$$ = A_exp_init_newid(S_symbol($2));}
     | NEW INT_ID LBRACK exp RBRACK { $$ = A_exp_init_array($4);}
     | REVERSE exp { $$ = A_exp_init_reverse($2);}
-    | LBRACK exp RBRACK {$$ = A_exp_init_exp($2);}
+    | LPAREN exp RPAREN {$$ = A_exp_init_exp($2);}
     | exp PLUS exp %prec PLUS { $$ = A_exp_init_op($1,A_plus,$3);}
     /* TODO: not support -132 */
+    | MINUS exp %prec UMINUS{ $$ = A_exp_init_uminus($2);}
     | exp MINUS exp %prec MINUS { $$ = A_exp_init_op($1,A_minus,$3);}
     | exp TIMES exp %prec TIMES { $$ = A_exp_init_op($1,A_times,$3);}
     | exp AND exp %prec AND { $$ = A_exp_init_op($1,A_and,$3);}
     | exp LT exp %prec LT { $$ = A_exp_init_op($1,A_lt,$3);}
     | exp LBRACK exp RBRACK { $$ = A_exp_init_sub($1,$3);}
     | exp DOT LENGTH { $$ = A_exp_init_length($1);}
-    /* ALDO: TODO: only suport no arg_decs */
+    /* DONE: only suport no arg_decs */
     | exp DOT ID LPAREN exps RPAREN { $$ = A_exp_init_method($1,S_symbol($3),$5);}
     ;
 

@@ -1,17 +1,17 @@
 CC=gcc
-CFLAGS=-D YYDEBUG
+CFLAGS=-D YYDEBUG -g -Wno-varargs
 
-all: check parse debug.html
+OBJ=minijava.tab.o sym.o absyn.o error.o lex.yy.o util.o parse_tree.o
+all: check parse parse_out
 	@echo done
 
-debug.html: minijava.y
-	bison -x minijava.y
-	xsltproc `bison --print-datadir`/xslt/xml2xhtml.xsl minijava.xml > $@
-
-check: sym.o absyn.o check.o error.o y.tab.o lex.yy.o util.o
+check: $(OBJ) check.o
 	gcc $^ -o $@
 
-parse: sym.o absyn.o parse.o error.o y.tab.o lex.yy.o util.o
+parse: $(OBJ) parse.o
+	gcc $^ -o $@
+
+parse_out: $(OBJ) parse_out.o
 	gcc $^ -o $@
 
 lex.yy.c: minijava.lex
@@ -20,11 +20,13 @@ lex.yy.c: minijava.lex
 lex.yy.o: lex.yy.c
 	gcc $(CFLAGS) -c $^ -o $@
 
-y.tab.o: y.tab.c
+minijava.tab.o: minijava.tab.c
 	gcc $(CFLAGS) -c $^ -o $@
 
-y.tab.c: minijava.y
-	yacc -dv $^
+minijava.tab.c: minijava.y
+	bison -d -x $^
+	xsltproc `bison --print-datadir`/xslt/xml2xhtml.xsl minijava.xml > debug.html
 
 clean:
-	rm -rf *.o a.out y.tab.[ch] lex.yy.c minijava.xml minijava.tab.c
+	rm -rf *.o a.out y.tab.[ch] lex.yy.c minijava.xml minijava.tab.[ch] debug.html \
+		parse parse_out check

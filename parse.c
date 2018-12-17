@@ -3,7 +3,7 @@
 #include "util.h"
 #include "error.h"
 #include "absyn.h"
-#include "y.tab.h"
+#include "minijava.tab.h"
 
 
 YYSTYPE yylval;

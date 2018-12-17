@@ -2,10 +2,10 @@
 #include "sym.h"
 #include "absyn.h"
 
-A_goal A_goal_init(A_main mc,A_class_list list){
+A_goal A_goal_init(A_main main,A_class_list list){
     A_goal g = safe_malloc(sizeof(*g));
-    g->mc = mc;
-    g->cls = list;
+    g->main = main;
+    g->classes = list;
     g->tab = S_table_init(NULL);
     return g;
 }
@@ -133,7 +133,7 @@ A_stm A_stm_init_sub(S_sym name,A_exp sub,A_exp val){
 A_stm A_stm_init_var(A_var_dec v){
     A_stm s = safe_malloc(sizeof(*s));
     s->kind = A_stm_var_dec;
-    s->u.var.var = v;
+    s->u.var_dec.var_dec = v;
     return s;
 }
 
@@ -210,7 +210,13 @@ A_exp A_exp_init_reverse(A_exp exp){
 A_exp A_exp_init_exp(A_exp exp){
     A_exp e = safe_malloc(sizeof(*e));
     e->kind = A_exp_exp;
-    e->u.exps.exp = exp;
+    e->u.exp.exp = exp;
+    return e;
+}
+A_exp A_exp_init_uminus(A_exp exp){
+    A_exp e = safe_malloc(sizeof(*e));
+    e->kind = A_exp_uminus;
+    e->u.uminus.exp = exp;
     return e;
 }
 
