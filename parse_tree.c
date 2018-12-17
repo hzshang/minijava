@@ -51,15 +51,19 @@ void parse_main(A_main main){
     parse_stm(main->stm);
     FOOT;
 }
-
+static inline void parse_class_extends(S_sym ext){
+    HEADER("Extends");
+    if(!ext)
+        printf_fmt("\n[NULL]");
+    else
+        parse_sym(ext);
+    FOOT;
+}
 void parse_class(A_class cls){
     HEADER("Class");
     parse_sym(cls->id);
     printf_fmt(",");
-    if(cls->extend)
-        parse_sym(cls->extend);
-    else
-        printf_fmt("\n[NULL]");
+    parse_class_extends(cls->extend);
     printf_fmt(",");
     parse_var_decs(cls->vars);
     printf_fmt(",");
