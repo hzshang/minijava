@@ -1,14 +1,14 @@
 CC=gcc
 CFLAGS=-D YYDEBUG -g -Wno-varargs
 
-OBJ=minijava.tab.o sym.o absyn.o error.o lex.yy.o util.o parse_tree.o
+OBJ=minijava.tab.o sym.o absyn.o error.o lex.yy.o util.o parse_tree_back.o #parse_tree_front.o
 all: check parse parse_out
 	@echo done
 
 check: $(OBJ) check.o
 	gcc $^ -o $@
 
-parse: $(OBJ) parse.o
+parse: $(OBJ) parse_out.o
 	gcc $^ -o $@
 
 parse_out: $(OBJ) parse_out.o
