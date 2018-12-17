@@ -11,7 +11,8 @@ S_sym S_symbol(string name){
     }
     return tmp;
     */
-    return NULL;
+    S_sym tmp = S_sym_init(name);
+    return tmp;
 }
 S_sym S_sym_init(string name){
     S_sym r = safe_malloc(sizeof(*r));

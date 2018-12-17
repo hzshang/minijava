@@ -1,16 +1,20 @@
 CC=gcc
-CFLAGS=-D YYDEBUG
+CFLAGS=-D YYDEBUG -g
 
-all: check parse
+OBJ=minijava.tab.o sym.o absyn.o error.o lex.yy.o util.o parse_tree.o
+all: check parse parse_out
 	@echo done
 
-check: sym.o absyn.o check.o error.o minijava.tab.o lex.yy.o util.o
+check: $(OBJ) check.o
 	gcc $^ -o $@
 
-parse: sym.o absyn.o parse.o error.o minijava.tab.o lex.yy.o util.o
+parse: $(OBJ) parse.o
 	gcc $^ -o $@
 
-lex.yy.c: minijava.lex | 
+parse_out: $(OBJ) parse_out.o
+	gcc $^ -o $@
+
+lex.yy.c: minijava.lex
 	lex $^
 	
 lex.yy.o: lex.yy.c
@@ -24,4 +28,5 @@ minijava.tab.c: minijava.y
 	xsltproc `bison --print-datadir`/xslt/xml2xhtml.xsl minijava.xml > debug.html
 
 clean:
-	rm -rf *.o a.out y.tab.[ch] lex.yy.c minijava.xml minijava.tab.[ch] debug.html 
+	rm -rf *.o a.out y.tab.[ch] lex.yy.c minijava.xml minijava.tab.[ch] debug.html \
+		parse parse_out check
