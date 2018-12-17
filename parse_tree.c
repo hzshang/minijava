@@ -1,166 +1,247 @@
 #include "stand.h"
 #include "parse_tree.h"
+#define STEP 3
+#define RSHIFT do{\
+    xlen+=STEP;\
+}while(0)
+
+#define LSHIFT do{\
+    xlen-=STEP;\
+}while(0)
+
+static int xlen = 0;
+static void printf_fmt(string fmt,...){
+    va_list ap;
+    if(fmt[0]=='\n'){
+        printf("\n%*c",xlen,' ');
+        va_start(ap,&fmt[1]);
+        vfprintf(stdout,&fmt[1],ap);
+        va_end(ap);
+    }else{
+        va_start(ap,fmt);
+        vfprintf(stdout,fmt,ap);
+        va_end(ap);
+    }
+}
 
 void parse_goal(A_goal root){
-    printf("Goal(\n");
+    printf_fmt("Goal(");
+    RSHIFT;
     parse_main(root->main);
-    printf(",\n");
+    printf_fmt(",");
     parse_classes(root->classes);
-    printf(")\n");
+    LSHIFT;
+    printf_fmt("\n)\n");
 }
 
 void parse_main(A_main main){
-    printf("MainClass(\n");
+    printf_fmt("\nMainClass(");
+    RSHIFT;
     parse_sym(main->id);
-    printf(",\n");
+    printf_fmt(",");
     parse_sym(main->arg_id);
-    printf(",\n");
+    printf_fmt(",");
     parse_stm(main->stm);
-    printf(")");
+    LSHIFT;
+    printf_fmt("\n)");
 }
 
 void parse_class(A_class cls){
-    printf("Class(\n");
+    printf_fmt("\nClass(");
+    RSHIFT;
     parse_sym(cls->id);
-    printf(",\n");
+    printf_fmt(",");
     if(cls->extend)
         parse_sym(cls->extend);
     else
-        printf("[NULL]");
-    printf(",\n");
+        printf_fmt("\n[NULL]");
+    printf_fmt(",");
     parse_var_decs(cls->vars);
-    printf(",\n");
+    printf_fmt(",");
     parse_methods(cls->methods);
-    printf(")");
+    LSHIFT;
+    printf_fmt("\n)");
 }
 
 
-void parse_op(A_op op){
+static inline void parse_exp_op(A_exp a,A_op op,A_exp b){
+    printf_fmt("\nExpOp(");
+    RSHIFT;
     switch(op){
         case A_and:
-            printf("&&");
+            printf_fmt("\n&&");
             break;
         case A_plus:
-            printf("+");
+            printf_fmt("\n+");
             break;
         case A_minus:
-            printf("-");
+            printf_fmt("\n-");
             break;
         case A_times:
-            printf("*");
+            printf_fmt("\n*");
             break;
         case A_lt:
-            printf("<");
+            printf_fmt("\n<");
             break;
         default:
             assert(false);
             break;
     }
-
+    printf_fmt(",");
+    parse_exp(a);
+    printf_fmt(",");
+    parse_exp(b);
+    LSHIFT;
+    printf_fmt(")");
+}
+static inline void parse_exp_uminus(A_exp a){
+    printf_fmt("\nExpUminus(");
+    RSHIFT;
+    parse_exp(a);
+    LSHIFT;
+    printf_fmt("\n)");
+}
+static inline void parse_exp_sub(A_exp val,A_exp sub){
+    printf_fmt("\nExpSub");
+    RSHIFT;
+    parse_exp(val);
+    printf(",");
+    parse_exp(sub);
+    LSHIFT;
+    printf_fmt("\n)");
+}
+static inline void parse_exp_length(A_exp exp){
+    printf_fmt("\nExpLength");
+    RSHIFT;
+    parse_exp(exp);
+    LSHIFT;
+    printf_fmt("\n)");
+}
+static inline void parse_exp_method(A_exp exp,S_sym name,A_exp_list exps){
+    printf_fmt("\nExpMethod(");
+    RSHIFT;
+    parse_exp(exp);
+    printf_fmt(",");
+    parse_sym(name);
+    printf_fmt(",");
+    parse_exps(exps);
+    LSHIFT;
+    printf_fmt("\n)");
+}
+static inline void parse_exp_array(A_exp size){
+    printf_fmt("\nExpIntArray(");
+    RSHIFT;
+    parse_exp(size);
+    LSHIFT;
+    printf_fmt("\n)");
+}
+static inline void parse_exp_reverse(A_exp exp){
+    printf_fmt("\nExpReverse(");
+    RSHIFT;
+    parse_exp(exp);
+    LSHIFT;
+    printf_fmt("\n)");
+}
+static inline void parse_exp_new_id(S_sym name){
+    printf_fmt("\nExpNew(");
+    RSHIFT;
+    parse_sym(name);
+    LSHIFT;
+    printf_fmt("\n)");
 }
 void parse_exp(A_exp exp){
-    printf("Exp(");
+    printf_fmt("\nExp(");
+    RSHIFT;
     switch(exp->kind){
         case A_exp_ops:
-            parse_exp(exp->u.op.a);
-            parse_op(exp->u.op.op);
-            parse_exp(exp->u.op.b);
+            parse_exp_op(exp->u.op.a,exp->u.op.op,exp->u.op.b);
             break;
         case A_exp_sub:
-            parse_exp(exp->u.sub.exp);
-            printf("[");
-            parse_exp(exp->u.sub.sub);
-            printf("]");
+            parse_exp_sub(exp->u.sub.exp,exp->u.sub.sub);
             break;
         case A_exp_length:
-            parse_exp(exp->u.length.exp);
-            printf(".length");
+            parse_exp_length(exp->u.length.exp);
             break;
         case A_exp_method:
-            parse_exp(exp->u.method.exp);
-            printf(".");
-            parse_sym(exp->u.method.method);
-            printf("(");
-            parse_exps(exp->u.method.args);
-            printf(")");
-            break;
-        case A_exp_int:
-            printf("%d",exp->u.intval.val);
-            break;
-        case A_exp_bool:
-            printf("%s",exp->u.boolval.val?"true":"false");
+            parse_exp_method(exp->u.method.exp,exp->u.method.method,exp->u.method.args);
             break;
         case A_exp_id:
             parse_sym(exp->u.id.name);
             break;
-        case A_exp_this:
-            printf("this");
-            break;
         case A_exp_array:
-            printf("new Int [");
-            parse_exp(exp->u.array.size);
-            printf("]");
+            parse_exp_array(exp->u.array.size);
             break;
         case A_exp_new_id:
-            printf("new ");
-            parse_sym(exp->u.new_id.name);
-            printf("()");
+            parse_exp_new_id(exp->u.new_id.name);
             break;
         case A_exp_reverse:
-            printf("!");
-            parse_exp(exp->u.reverse.exp);
+            parse_exp_reverse(exp->u.reverse.exp);
             break;
         case A_exp_exp:
-            printf("(");
             parse_exp(exp->u.exp.exp);
-            printf(")");
             break;
         case A_exp_uminus:
-            printf("-");
-            parse_exp(exp->u.uminus.exp);
+            parse_exp_uminus(exp->u.uminus.exp);
+            break;
+        /* code don't have fmt bellow*/
+        case A_exp_int:
+            printf_fmt("\n%d",exp->u.intval.val);
+            break;
+        case A_exp_bool:
+            printf_fmt("\n%s",exp->u.boolval.val?"true":"false");
+            break;
+        case A_exp_this:
+            RSHIFT;
+            printf_fmt("\nthis");
+            LSHIFT;
             break;
         default:
             assert(false);
             break;
     }
-    printf(")");
+    LSHIFT;
+    printf_fmt("\n)");
 }
 
 void parse_stm(A_stm stm){
-    printf("Statement(\n");
+    printf_fmt("\nStatement(");
+    RSHIFT;
     switch(stm->kind){
         case A_stm_stms:
             parse_stms(stm->u.stms.stms);
             break;
         case A_stm_if_else:
-            printf("if(\n");
+            printf_fmt("if(");
             parse_exp(stm->u.cond.cond);
-            printf(")");
+            printf_fmt(")");
             parse_stm(stm->u.cond.yes);
-            printf("else \n");
+            printf_fmt("else");
             parse_stm(stm->u.cond.no);
             break;
         case A_stm_loop:
-            printf("while(\n");
+            printf_fmt("\nwhile(");
+            RSHIFT;
             parse_exp(stm->u.loop.cond);
-            printf(")");
+            printf_fmt(")");
             parse_stm(stm->u.loop.stm);
             break;
         case A_stm_print:
-            printf("print(\n");
+            printf_fmt("\nprint(");
+            RSHIFT;
             parse_exp(stm->u.print.out);
-            printf(")");
+            LSHIFT;
+            printf_fmt("\n)");
             break;
         case A_stm_assign:
             parse_sym(stm->u.assign.name);
-            printf("=");
+            printf_fmt("=");
             parse_exp(stm->u.assign.val);
             break;
         case A_stm_sub:
             parse_sym(stm->u.sub.name);
-            printf("[");
+            printf_fmt("[");
             parse_exp(stm->u.sub.sub);
-            printf("]=");
+            printf_fmt("]=");
             parse_exp(stm->u.sub.val);
             break;
         case A_stm_var_dec:
@@ -170,35 +251,40 @@ void parse_stm(A_stm stm){
             assert(false);
             break;
     }
-    printf(")");
+    LSHIFT;
+    printf_fmt("\n)");
 }
 
 void parse_method(A_method m){
-    printf("Method(");
+    printf_fmt("\nMethod(");
+    RSHIFT;
     parse_type(m->type);
-    printf(",");
+    printf_fmt(",");
     parse_sym(m->name);
-    printf(",");
+    printf_fmt(",");
     parse_arg_decs(m->args);
-    printf(",");
+    printf_fmt(",");
     parse_stms(m->stms);
-    printf(",");
+    printf_fmt(",");
     parse_exp(m->ret);
-    printf(")");
+    LSHIFT;
+    printf_fmt(")");
 }
 void parse_type(A_type type){
+    printf_fmt("\n");
+    RSHIFT;
     switch (type->kind){
         case A_type_int:
-            printf("Int");
+            printf_fmt("Int");
             break;
         case A_type_array:
-            printf("Array");
+            printf_fmt("Array");
             break;
         case A_type_boolean:
-            printf("Bool");
+            printf_fmt("Bool");
             break;
         case A_type_string:
-            printf("String");
+            printf_fmt("String");
             break;
         case A_type_sym:
             parse_sym(type->u.id.name);
@@ -207,119 +293,156 @@ void parse_type(A_type type){
             assert(false);
             break;
     }
+    LSHIFT;
 }
 
 void parse_var_dec(A_var_dec var_dec){
-    printf("VarDeclaration(");
+    printf_fmt("\nVarDeclaration(");
+    RSHIFT;
     parse_type(var_dec->type);
-    printf(",");
+    printf_fmt(",");
     parse_sym(var_dec->name);
-    printf(")");
+    LSHIFT;
+    printf_fmt("\n)");
 }
 
 void parse_arg_dec(A_arg_dec arg_dec){
-    printf("ArgDeclaration(");
+    printf_fmt("\nArgDeclaration(");
+    RSHIFT;
     parse_type(arg_dec->type);
-    printf(",");
+    printf_fmt(",");
     parse_sym(arg_dec->name);
-    printf(")");
+    LSHIFT;
+    printf_fmt("\n)");
 }
 
 void parse_sym(S_sym sym){
-    printf("%s",sym->name);
+    printf_fmt("\n%s",sym->name);
+    /*
+    printf_fmt("\nSymbol(%s)",sym->name);
+    printf_fmt("\n");
+    */
 }
 
 void parse_arg_decs(A_arg_dec_list list){
     A_arg_dec_list tmp = list;
-    printf("ArgDeclarationList(");
+    printf_fmt("\nArgDeclarationList(");
+    RSHIFT;
     if(!tmp){
-        printf("[NULL]");
+        printf_fmt("\n[NULL]");
     }else{
         while(tmp){
             parse_arg_dec(tmp->val);
             if(tmp->next)
-                printf(",");
+                printf_fmt(",");
             tmp = tmp->next;
         }
     }
-    printf(")");
+    LSHIFT;
+    printf_fmt("\n)");
 }
 
 
 void parse_var_decs(A_var_dec_list list){
     A_var_dec_list tmp = list;
-    printf("VarDeclarationList(");
+    printf_fmt("\nVarDeclarationList(");
+    RSHIFT;
     if(!tmp){
-        printf("[NULL]");
+        printf_fmt("\n[NULL]");
     }else{
         while(tmp){
             parse_var_dec(tmp->val);
             if(tmp->next)
-                printf(",");
+                printf_fmt(",");
             tmp = tmp->next;
         }
     }
-    printf(")");
+    LSHIFT;
+    printf_fmt("\n)");
 }
 
 void parse_methods(A_method_list list){
     A_method_list tmp = list;
-    printf("MethodList(");
+    printf_fmt("\nMethodList(");
+    RSHIFT;
     if(!tmp){
-        printf("[NULL]");
+        printf_fmt("\n[NULL]");
     }else{
         while(tmp){
             parse_method(tmp->val);
             if(tmp->next)
-                printf(",");
+                printf_fmt(",");
             tmp = tmp->next;
         }
     }
-    printf(")");
+    LSHIFT;
+    printf_fmt("\n)");
 }
 void parse_stms(A_stm_list list){
     A_stm_list tmp = list;
-    printf("StatementList(");
+    printf_fmt("\nStatementList(");
+    RSHIFT;
     if(!tmp){
-        printf("[NULL]");
+        printf_fmt("\n[NULL]");
     }else{
         while(tmp){
             parse_stm(tmp->val);
             if(tmp->next)
-                printf(",");
+                printf_fmt(",");
             tmp = tmp->next;
         }
     }
-    printf(")");
+    LSHIFT;
+    printf_fmt("\n)");
 }
 void parse_exps(A_exp_list list){
     A_exp_list tmp = list;
-    printf("ExpList(");
+    printf_fmt("\nExpList(");
+    RSHIFT;
     if(!tmp){
-        printf("[NULL]");
+        printf_fmt("\n[NULL]");
     }else{
         while(tmp){
             parse_exp(tmp->val);
             if(tmp->next)
-                printf(",");
+                printf_fmt(",");
             tmp = tmp->next;
         }
     }
-    printf(")");
+    LSHIFT;
+    printf_fmt("\n)");
 }
 void parse_classes(A_class_list list){
     A_class_list tmp = list;
-    printf("ClassList(");
+    printf_fmt("\nClassList(");
+    RSHIFT;
     if(!tmp){
-        printf("[NULL]");
+        printf_fmt("\n[NULL]");
     }else{
         while(tmp){
             parse_class(tmp->val);
             if(tmp->next)
-                printf(",");
+                printf_fmt(",");
             tmp = tmp->next;
         }
     }
-    printf(")");
+    LSHIFT;
+    printf_fmt("\n)");
 }
 
+
+void parse_op_reverse(A_exp a){
+    printf_fmt("\nReverse(");
+    RSHIFT;
+    parse_exp(a);
+    LSHIFT;
+    printf_fmt("\n)");
+}
+
+void parse_op_uminus(A_exp a){
+    printf_fmt("\nUminus(");
+    RSHIFT;
+    parse_exp(a);
+    LSHIFT;
+    printf_fmt("\n)");
+}
