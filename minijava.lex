@@ -124,6 +124,7 @@ char *string_ptr;
 <comment2>{
     \n {
         ADJ;
+        state_newline();
         BEGIN(INITIAL);
     }
     . {
@@ -156,7 +157,7 @@ char *string_ptr;
     static {ADJ;RECORD_ID;return STATIC;}
     main {ADJ;RECORD_ID;return MAIN;}
     extends {ADJ;RECORD_ID;return EXTENDS;}
-    RECORD_ID;return {ADJ;RECORD_ID;return RETURN;}
+    return {ADJ;RECORD_ID;return RETURN;}
     int {ADJ; RECORD_ID;return INT_ID;}
     boolean {ADJ;RECORD_ID;return BOOLEAN_ID;}
     String {ADJ;RECORD_ID;return STRING_ID;}

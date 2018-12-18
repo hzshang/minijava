@@ -13,19 +13,20 @@ A_goal root;
 void yyerror(string s){
     /* Do nothing :> */
 }
-#define ERROR_NO_SEMICOLON(...) do{\
+//TODO a better way
+#define ERROR_NO_SEMICOLON() do{\
     record_error(last_token_pos[0]+last_token_len[0],0);\
-    show_error(E_NO_SEMICOLON,__VA_ARGS__);\
+    show_error(E_NO_SEMICOLON,err->given);\
 }while(0)
 
-#define ERROR_NO_RETURN(...) do{\
+#define ERROR_NO_RETURN() do{\
     record_error(token_pos,yyleng);\
-    show_error(E_NO_RETURN,__VA_ARGS__);\
+    show_error(E_NO_RETURN,err->given);\
 }while(0)
 
-#define ERROR_NO_MATCH(...) do{\
+#define ERROR_NO_MATCH() do{\
     record_error(token_pos,yyleng);\
-    show_error(E_NO_MATCH,__VA_ARGS__);\
+    show_error(E_NO_MATCH,err->given);\
 }while(0)
 
 
@@ -104,7 +105,9 @@ goal: main classes { $$ = A_goal_init($1,$2);}
     ;
 
 return: RETURN exp SEMICOLON { $$ = $2;}
-    | error {{ERROR_NO_RETURN(err->given);}}
+    | error {{ERROR_NO_RETURN();}}
+    | RETURN {}
+    | RETURN exp { ERROR_NO_SEMICOLON();}
     ;
 
 main: CLASS ID LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING_ID LBRACK RBRACK ID RPAREN LBRACE stm RBRACE RBRACE {$$ = A_main_init(S_symbol($2),S_symbol($12),$15);}
@@ -151,7 +154,7 @@ vars: {$$ = A_var_dec_list_init_null();}
     ;
 
 var: type ID SEMICOLON { $$ = A_var_dec_init($1,S_symbol($2));}
-    | type ID error {ERROR_NO_SEMICOLON(err->given);}
+    | type ID error {ERROR_NO_SEMICOLON();}
     ;
 
 type: INT_ID {$$ = A_type_init_int();}
@@ -176,7 +179,7 @@ stm: LBRACE stms RBRACE {$$ = A_stm_init_stmlist($2);}
     | WHILE LPAREN exp RPAREN stm { $$ = A_stm_init_loop($3,$5);}
     | var {$$ = A_stm_init_var($1);}
     | stm_sem SEMICOLON { $$ = $1;}
-    | stm_sem error {ERROR_NO_SEMICOLON(err->given);}
+    | stm_sem error {ERROR_NO_SEMICOLON();}
     ;
 
 exp:  ID { $$ = A_exp_init_id(S_symbol($1));}

@@ -31,6 +31,8 @@ void record_error(int pos,int len){
     fseek(copy,pos,SEEK_SET);
     err->given = String_init_len(len);
     err->given[fread(err->given,len,sizeof(char),copy)] = '\x00';
+    // 
+    err->kind = E_expect;
 }
 
 void show_error(string msg,...){
