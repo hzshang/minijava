@@ -12,3 +12,9 @@ string String(char* p){
     strcpy(r,p);
     return r;
 }
+
+string String_init_len(int len){
+    string r = safe_malloc(len+1);
+    memset(r,0,len);
+    return r;
+}

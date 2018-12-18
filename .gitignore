@@ -1,4 +1,5 @@
 *.o
+.DS_Store
 a.out
 *.swp
 y.tab.[ch]
@@ -13,3 +14,4 @@ minijava.tab.c
 log
 parse_out
 *.png
+scaner

@@ -14,6 +14,6 @@
 #include <unistd.h>
 #include <assert.h>
 #include <stdarg.h>
-
+#include "color.h"
 
 #endif /* !STAND_H */

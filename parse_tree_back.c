@@ -74,6 +74,8 @@ void parse_class(A_class cls){
 
 static inline void parse_exp_op(A_exp a,A_op op,A_exp b){
     HEADER("");
+    parse_exp(a);
+    printf_fmt(",");
     switch(op){
         case A_and:
             printf_fmt("\n&&");
@@ -94,8 +96,6 @@ static inline void parse_exp_op(A_exp a,A_op op,A_exp b){
             assert(false);
             break;
     }
-    printf_fmt(",");
-    parse_exp(a);
     printf_fmt(",");
     parse_exp(b);
     FOOT("ExpOp");
