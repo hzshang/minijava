@@ -1,35 +1,67 @@
 #include "stand.h"
 #include "util.h"
 #include "error.h"
+#include "state.h"
 
-#define MAX_LINE 4096
-int line_num;
-int lines[MAX_LINE];
-int token_pos;
-bool error;
-static string filename;
-extern FILE* yyin;
-void state_error(int pos, char* msg,...){
+E_error err;
+FILE* copy;
+
+static string str_dup_line(string p){
+    string it = p;
+    while(*it && *it!='\n')
+        it++;
+    int len = it-p;
+    string r = safe_malloc(len+1);
+    memcpy(r,p,len);
+    r[len] = '\x00';
+    return r;
+}
+
+void record_error(int pos,int len){
+    size_t alloc_size;
+    string line = NULL;
+    E_pos_locate(err->pos,pos);
+    fseek(copy,lines[err->pos->row],SEEK_SET);
+    getline(&line,&alloc_size,copy);
+    int length = strlen(line);
+    if(line[length-1]=='\n')
+        line[length-1]='\x00';
+    err->line = line;
+    // given char
+    fseek(copy,pos,SEEK_SET);
+    err->given = String_init_len(len);
+    err->given[fread(err->given,len,sizeof(char),copy)] = '\x00';
+}
+
+void show_error(string msg,...){
     va_list ap;
-    int num = line_num;
-    while(lines[num] > pos)
-        num--;
-    fprintf(stderr,"%d:%d: ",num,pos-lines[num]);
+    ERR("Error: %d:%d: ",err->pos->row,err->pos->column);
     va_start(ap,msg);
     vfprintf(stderr,msg,ap);
     va_end(ap);
+    ERR("> %s\n",err->line);
+    ERR("%*c%s\n",err->pos->column+2,' ',GREEN("^"));
 }
-void state_newline(){
-    line_num ++;
-    lines[line_num] = token_pos;
+
+E_error E_error_init(){
+    E_error e = safe_malloc(sizeof(*e));
+    memset(e,0,sizeof(*e));
+    e->kind = E_none;
+    e->pos = E_pos_init();
+    return e;
 }
-void state_reset(string file){
-    error = 0;
-    filename = file;
-    line_num = 1;
-    yyin = fopen(filename,"r");
-    if(!yyin){
-        fprintf(stderr,"open %s failed\n",filename);
-        exit(1);
-    }
+
+E_pos E_pos_init(){
+    E_pos p = safe_malloc(sizeof(*p));
+    memset(p,0,sizeof(*p));
+    return p;
 }
+
+void E_pos_locate(E_pos e,int len){
+    int num = line_num;
+    while(lines[num] > len)
+        num--;
+    e->row = num;
+    e->column = len - lines[num];
+}
+

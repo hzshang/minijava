@@ -4,12 +4,31 @@
 #include "sym.h"
 #include "absyn.h"
 #include "error.h"
+#include "state.h"
 int yylex(void);
+extern int yyleng;
+extern string yytext;
 A_goal root;
+/* record error */
 void yyerror(string s){
-    state_error(token_pos,"%s",s);
-    exit(1);
+    /* Do nothing :> */
 }
+#define ERROR_NO_SEMICOLON(...) do{\
+    record_error(last_token_pos[0]+last_token_len[0],0);\
+    show_error(E_NO_SEMICOLON,__VA_ARGS__);\
+}while(0)
+
+#define ERROR_NO_RETURN(...) do{\
+    record_error(token_pos,yyleng);\
+    show_error(E_NO_RETURN,__VA_ARGS__);\
+}while(0)
+
+#define ERROR_NO_MATCH(...) do{\
+    record_error(token_pos,yyleng);\
+    show_error(E_NO_MATCH,__VA_ARGS__);\
+}while(0)
+
+
 %}
 
 %union {
@@ -60,9 +79,9 @@ void yyerror(string s){
 %type <var_dec> var
 %type <var_dec_list> vars
 %type <type> type
-%type <stm> stm
+%type <stm> stm stm_sem
 %type <stm_list> stms
-%type <exp> exp exp_next
+%type <exp> exp exp_next return
 %type <exp_list> exps exp_nexts exp_next_more
 
 /* 先执行的排在下面*/
@@ -84,6 +103,10 @@ program: goal {root = $1;}
 goal: main classes { $$ = A_goal_init($1,$2);}
     ;
 
+return: RETURN exp SEMICOLON { $$ = $2;}
+    | error {{ERROR_NO_RETURN(err->given);}}
+    ;
+
 main: CLASS ID LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING_ID LBRACK RBRACK ID RPAREN LBRACE stm RBRACE RBRACE {$$ = A_main_init(S_symbol($2),S_symbol($12),$15);}
     ;
 
@@ -101,7 +124,8 @@ methods: { $$ = A_method_list_init_null();}
     | method methods {$$ = A_method_list_init_methods($1,$2);}
     ;
 
-method: PUBLIC type ID LPAREN arg_decs RPAREN LBRACE stms RETURN exp SEMICOLON RBRACE {$$ = A_method_init($2,S_symbol($3),$5,$8,$10);}
+method: PUBLIC type ID LPAREN arg_decs RPAREN LBRACE stms return RBRACE {$$ = A_method_init($2,S_symbol($3),$5,$8,$9);}
+/*    | error { } */
     ;
 
 arg_dec_next: COMMA type ID {$$ = A_arg_dec_init($2,S_symbol($3));}
@@ -127,6 +151,7 @@ vars: {$$ = A_var_dec_list_init_null();}
     ;
 
 var: type ID SEMICOLON { $$ = A_var_dec_init($1,S_symbol($2));}
+    | type ID error {ERROR_NO_SEMICOLON(err->given);}
     ;
 
 type: INT_ID {$$ = A_type_init_int();}
@@ -140,13 +165,18 @@ stms: {$$ = A_stm_list_init_null();}
     | stm stms {$$ = A_stm_list_init_stms($1,$2);}
     ;
 
+stm_sem:
+      PRINT LPAREN exp RPAREN {$$ = A_stm_init_print($3);}
+    | ID ASSIGN exp {$$ = A_stm_init_assign(S_symbol($1),$3);}
+    | ID LBRACK exp RBRACK ASSIGN exp { $$ = A_stm_init_sub(S_symbol($1),$3,$6);}
+    ;
+
 stm: LBRACE stms RBRACE {$$ = A_stm_init_stmlist($2);}
     | IF LPAREN exp RPAREN stm ELSE stm {$$ = A_stm_init_cond($3,$5,$7);}
     | WHILE LPAREN exp RPAREN stm { $$ = A_stm_init_loop($3,$5);}
-    | PRINT LPAREN exp RPAREN SEMICOLON {$$ = A_stm_init_print($3);}
-    | ID ASSIGN exp SEMICOLON {$$ = A_stm_init_assign(S_symbol($1),$3);}
-    | ID LBRACK exp RBRACK ASSIGN exp SEMICOLON { $$ = A_stm_init_sub(S_symbol($1),$3,$6);}
     | var {$$ = A_stm_init_var($1);}
+    | stm_sem SEMICOLON { $$ = $1;}
+    | stm_sem error {ERROR_NO_SEMICOLON(err->given);}
     ;
 
 exp:  ID { $$ = A_exp_init_id(S_symbol($1));}
@@ -159,7 +189,7 @@ exp:  ID { $$ = A_exp_init_id(S_symbol($1));}
     | REVERSE exp { $$ = A_exp_init_reverse($2);}
     | LPAREN exp RPAREN {$$ = A_exp_init_exp($2);}
     | exp PLUS exp %prec PLUS { $$ = A_exp_init_op($1,A_plus,$3);}
-    /* TODO: not support -132 */
+    /* DONE: not support -132 */
     | MINUS exp %prec UMINUS{ $$ = A_exp_init_uminus($2);}
     | exp MINUS exp %prec MINUS { $$ = A_exp_init_op($1,A_minus,$3);}
     | exp TIMES exp %prec TIMES { $$ = A_exp_init_op($1,A_times,$3);}
@@ -169,6 +199,8 @@ exp:  ID { $$ = A_exp_init_id(S_symbol($1));}
     | exp DOT LENGTH { $$ = A_exp_init_length($1);}
     /* DONE: only suport no arg_decs */
     | exp DOT ID LPAREN exps RPAREN { $$ = A_exp_init_method($1,S_symbol($3),$5);}
+/*    | error RPAREN {show_error("expect a %s, given '%s'\n","Expression",err->given);} */
+/*    | error {show_error("expect a %s, given '%s'\n","Expression",err->given);}*/
     ;
 
 exp_next: COMMA exp {$$ = $2;}

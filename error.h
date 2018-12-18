@@ -1,8 +1,34 @@
 #ifndef ERROR_H
 #define ERROR_H
-void state_error(int,char*,...);
-void state_newline();
-void state_reset(char*);
-extern int token_pos;
+#define E_NO_SEMICOLON "Expect a ';'\n"
+#define E_NO_RETURN "Expect a return at method end\n"
+#define E_NO_MATCH "Expect a %s, given '%s'\n"
 
+typedef struct E_error_* E_error;
+typedef struct E_pos_* E_pos;
+struct E_pos_ {
+    int row;
+    int column;
+};
+
+struct E_error_ {
+    E_pos pos;
+    string line;
+    string given;
+    enum {E_no_return,E_no_semicolon,E_expect,E_none} kind;
+    union{
+        struct{} stm;
+        struct{} exp;
+    } u;
+};
+
+void record_error(int,int);
+void show_error(char*,...);
+
+E_error E_error_init();
+E_pos E_pos_init();
+void E_pos_locate(E_pos,int);
+
+extern E_error err;
+extern FILE* copy;
 #endif /* !ERROR_H */
