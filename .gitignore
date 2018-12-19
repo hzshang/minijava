@@ -9,7 +9,7 @@ parse
 *xml
 *html
 check
-minijava.tab.c
+minijava.tab.[ch]
 .gdb_history
 log
 parse_out

@@ -10,7 +10,7 @@ then
     echo "Usage: $0 file"
     exit 1
 fi
-./parse $1 -O | gotree draw cyjs --with-node-labels 2>/dev/null > abs.html
+./parse $1 -O | ./gotree draw cyjs --with-node-labels 2>/dev/null > abs.html
 if [ $? -eq '0' ]
 then
     echo "open ./abs.html with your favorite brower!"
