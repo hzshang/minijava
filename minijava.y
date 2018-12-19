@@ -5,15 +5,18 @@
 #include "absyn.h"
 #include "error.h"
 #include "state.h"
-int yylex(void);
 extern int yyleng;
+extern int yychar;
 extern string yytext;
+int yylex();
 A_goal root;
 /* record error */
-void yyerror(string s){
-    /* Do nothing :> */
+void yyerror(char const *msg){
+    record_error(token_pos,yyleng);
+    show_error(msg);
+    err->kind = E_unknown;
 }
-//TODO a better way
+/*
 #define ERROR_NO_SEMICOLON() do{\
     record_error(last_token_pos[0]+last_token_len[0],0);\
     show_error(E_NO_SEMICOLON,err->given);\
@@ -28,10 +31,14 @@ void yyerror(string s){
     record_error(token_pos,yyleng);\
     show_error(E_NO_MATCH,err->given);\
 }while(0)
-
+*/
+#define ERROR_NO_SEMICOLON() 
+#define ERROR_NO_RETURN()
+#define ERROR_NO_MATCH()
 
 %}
-
+%define parse.error verbose
+%define parse.lac full
 %union {
     int pos;
     int ival;
@@ -105,9 +112,8 @@ goal: main classes { $$ = A_goal_init($1,$2);}
     ;
 
 return: RETURN exp SEMICOLON { $$ = $2;}
-    | error {{ERROR_NO_RETURN();}}
-    | RETURN {}
-    | RETURN exp { ERROR_NO_SEMICOLON();}
+/*    | RETURN error {} */
+    | RETURN exp error { }
     ;
 
 main: CLASS ID LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING_ID LBRACK RBRACK ID RPAREN LBRACE stm RBRACE RBRACE {$$ = A_main_init(S_symbol($2),S_symbol($12),$15);}
@@ -115,10 +121,8 @@ main: CLASS ID LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING_ID LBRACK RBRACK ID 
 
 classes: {$$ = A_class_list_init_null();}
     | class classes { $$ = A_class_list_init_classes($1,$2);}
+    | error {}
     ;
-
-/*DONE:  only support no extend */
-/*DONE:  only support no arg_decs */
 
 class: CLASS ID LBRACE vars methods RBRACE { $$ = A_class_init(S_symbol($2),NULL,$4,$5);}
     | CLASS ID EXTENDS ID LBRACE vars methods RBRACE { $$ = A_class_init(S_symbol($2),S_symbol($4),$6,$7);}
@@ -128,7 +132,6 @@ methods: { $$ = A_method_list_init_null();}
     ;
 
 method: PUBLIC type ID LPAREN arg_decs RPAREN LBRACE stms return RBRACE {$$ = A_method_init($2,S_symbol($3),$5,$8,$9);}
-/*    | error { } */
     ;
 
 arg_dec_next: COMMA type ID {$$ = A_arg_dec_init($2,S_symbol($3));}
@@ -147,10 +150,12 @@ arg_dec: type ID { $$ = A_arg_dec_init($1,S_symbol($2));}
 arg_decs: arg_dec arg_dec_next_more {$$ = A_arg_dec_list_init_arg_decs($1,$2);}
     | arg_dec {$$ = A_arg_dec_list_init_arg_dec($1);}
     | {$$ = A_arg_dec_list_init_null();}
+    | error{}
     ;
 
 vars: {$$ = A_var_dec_list_init_null();}
     | var vars {$$ = A_var_dec_list_init_vars($1,$2);}
+    | error{}
     ;
 
 var: type ID SEMICOLON { $$ = A_var_dec_init($1,S_symbol($2));}
@@ -179,7 +184,6 @@ stm: LBRACE stms RBRACE {$$ = A_stm_init_stmlist($2);}
     | WHILE LPAREN exp RPAREN stm { $$ = A_stm_init_loop($3,$5);}
     | var {$$ = A_stm_init_var($1);}
     | stm_sem SEMICOLON { $$ = $1;}
-    | stm_sem error {ERROR_NO_SEMICOLON();}
     ;
 
 exp:  ID { $$ = A_exp_init_id(S_symbol($1));}
@@ -202,8 +206,6 @@ exp:  ID { $$ = A_exp_init_id(S_symbol($1));}
     | exp DOT LENGTH { $$ = A_exp_init_length($1);}
     /* DONE: only suport no arg_decs */
     | exp DOT ID LPAREN exps RPAREN { $$ = A_exp_init_method($1,S_symbol($3),$5);}
-/*    | error RPAREN {show_error("expect a %s, given '%s'\n","Expression",err->given);} */
-/*    | error {show_error("expect a %s, given '%s'\n","Expression",err->given);}*/
     ;
 
 exp_next: COMMA exp {$$ = $2;}

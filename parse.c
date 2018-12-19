@@ -13,22 +13,43 @@ extern int yylex();
 extern int yydebug;
 extern int yyparse(void);
 extern E_error err;
+extern int yynerrs;
 int main(int argc,char* argv[]){
     if(argc == 1){
-        ERR("Usage: %s filename [enable_out] [enable_debug]\n",argv[0]);
+        ERR("Usage: %s filename [-D] [-O]\n",argv[0]);
         exit(1);
     }
-    yydebug = argc == 4 ?1:0;
+    int enable_out = 0;
+    for(int i =1;i< argc;i++){
+        if (argv[i][0] == '-'){
+            switch(argv[i][1]){
+                case 'D':
+                    yydebug = 1;
+                    break;
+                case 'O':
+                    enable_out = 1;
+                    break;
+            }
+        }
+    }
     string fname = argv[1];
     state_reset(fname);
     yyparse();
     if(err->kind != E_none){
-        fprintf(stderr,"parse terminated\n");
+        ERR("%d errors found\n",yynerrs);
+        ERR("parse terminated\n");
         exit(1);
     }
-    if(argc > 2 && err->kind == E_none){
+    if(enable_out){
         parse_goal(root);
         printf(";\n");
     }
     return 0;
 }
+
+
+
+
+
+
+

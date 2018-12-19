@@ -3,10 +3,11 @@ class test{
 		System.out.println(1);
 	}
 }
-class tmp{
+class a {
     public int a(){
-        int a
-        a = 1;
-        return (1+2*3)
+        c[2 = 1;
+        int a;
+        if(a)
+        return 1
     }
 }

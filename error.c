@@ -31,17 +31,16 @@ void record_error(int pos,int len){
     fseek(copy,pos,SEEK_SET);
     err->given = String_init_len(len);
     err->given[fread(err->given,len,sizeof(char),copy)] = '\x00';
-    // 
-    err->kind = E_expect;
+    err->kind = E_no_return;
 }
 
-void show_error(string msg,...){
+void show_error(char const * msg,...){
     va_list ap;
     ERR("Error: %d:%d: ",err->pos->row,err->pos->column);
     va_start(ap,msg);
     vfprintf(stderr,msg,ap);
     va_end(ap);
-    ERR("> %s\n",err->line);
+    ERR("\n> %s\n",err->line);
     ERR("%*c%s\n",err->pos->column+2,' ',GREEN("^"));
 }
 
