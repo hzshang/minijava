@@ -1,13 +1,11 @@
 class test{
 	public static void main(String[] a){
-		System.out.println(1);
+        System.out.println(123);
 	}
 }
-class a {
-    public int a(){
-        c[2 = 1;
-        int a;
-        if(a)
-        return 1
+class test{
+    public int func(String a){
+        System.out.println(123);
+        return 123;
     }
 }

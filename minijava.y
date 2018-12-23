@@ -12,9 +12,8 @@ int yylex();
 A_goal root;
 /* record error */
 void yyerror(char const *msg){
-    record_error(token_pos,yyleng);
+    record_error(token_pos,yyleng,E_syntax);
     show_error(msg);
-    err->kind = E_unknown;
 }
 /*
 #define ERROR_NO_SEMICOLON() do{\
@@ -32,7 +31,7 @@ void yyerror(char const *msg){
     show_error(E_NO_MATCH,err->given);\
 }while(0)
 */
-#define ERROR_NO_SEMICOLON() 
+#define ERROR_NO_SEMICOLON()
 #define ERROR_NO_RETURN()
 #define ERROR_NO_MATCH()
 
@@ -112,7 +111,7 @@ goal: main classes { $$ = A_goal_init($1,$2);}
     ;
 
 return: RETURN exp SEMICOLON { $$ = $2;}
-/*    | RETURN error {} */
+    | RETURN error {} 
     | RETURN exp error { }
     ;
 
@@ -150,7 +149,7 @@ arg_dec: type ID { $$ = A_arg_dec_init($1,S_symbol($2));}
 arg_decs: arg_dec arg_dec_next_more {$$ = A_arg_dec_list_init_arg_decs($1,$2);}
     | arg_dec {$$ = A_arg_dec_list_init_arg_dec($1);}
     | {$$ = A_arg_dec_list_init_null();}
-    | error{}
+/*    | error{printf("fuck\n");}*/
     ;
 
 vars: {$$ = A_var_dec_list_init_null();}

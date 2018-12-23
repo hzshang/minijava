@@ -21,82 +21,19 @@ int yywrap(void){
     last_token_pos[0] = last_token_pos[1];\
     last_token_pos[1] = token_pos;\
 }while(0)
-#define MAX_LENGTH 2048
 
 #define ADJ_STR do{\
     state_pos += yyleng;\
 } while(0)
+
 #define ERROR(...) do{\
-    record_error(token_pos,yyleng);\
+    record_error(token_pos,yyleng,E_lexicon);\
     show_error(__VA_ARGS__);\
 }while(0)
 int com_depth;
-char string_buf [MAX_LENGTH];
-char *string_ptr;
-;
 %}
-%x string comment1 comment2
+%x comment1 comment2
 %%
-<string>{
-
-  \"  {
-    ADJ_STR;
-    *string_ptr='\0';
-    if (string_buf[0] != '\0')
-      yylval.sval=String(string_buf);
-    else
-      yylval.sval=String("[EMPTY]");
-    BEGIN(INITIAL);
-    RECORD_ID;
-    return STRING;
-  }
-
-  \\[0-9]{3} {
-    ADJ_STR;
-    int result = atoi(yytext + 1);
-    if (result > 0xff) {
-        ERROR("illegal character\n");
-        continue;
-    }
-    *string_ptr++ = result;
-  }
-
-  \\n     {ADJ_STR; *string_ptr++ = '\n';}
-  \\t     {ADJ_STR; *string_ptr++ = '\t';}
-  \\\"    {ADJ_STR; *string_ptr++ = '\"';}
-  \\\\    {ADJ_STR; *string_ptr++ = '\\';}
-  \\\^[\0-\037]   {
-    ADJ_STR;
-    *string_ptr++ = yytext[2];
-  }
-
-  \\[ \t\n\r]+\\ {
-    ADJ_STR;
-    char *yytextptr = yytext;
-    while (*yytextptr != '\0')
-    {
-      if (*yytextptr == '\n')
-        state_newline();
-      ++yytextptr;
-    }
-  }
-
-  \\. {ADJ_STR; ERROR("illegal escape char\n");}
-
-  \n  {
-    ADJ_STR;
-    state_newline();
-    ERROR("string terminated with newline\n");
-    continue;
-  }
-
-  [^\\\n\"]+        {
-    ADJ_STR;
-    char *yptr = yytext;
-    while (*yptr)
-      *string_ptr++ = *yptr++;
-  }
-}
 
 <*>"/*" {
     ADJ;
@@ -164,25 +101,20 @@ char *string_ptr;
     if {ADJ;RECORD_ID;return IF;}
     else {ADJ;RECORD_ID;return ELSE;}
     while {ADJ;RECORD_ID;return WHILE;}
-    "System.out.println" {ADJ;RECORD_ID;return PRINT;}
+    System\.out\.println {ADJ;RECORD_ID;return PRINT;}
     length {ADJ;RECORD_ID;return LENGTH;}
     true {ADJ;RECORD_ID;return TRUE;}
     false {ADJ;RECORD_ID;return FALSE;}
     new {ADJ;RECORD_ID;return NEW;}
     this {ADJ;RECORD_ID;return THIS;}
     
-    [0-9]+	 {ADJ; yylval.ival=atoi(yytext); RECORD_ID;return INT;}
+    [0-9]+ {ADJ; yylval.ival=atoi(yytext); RECORD_ID;return INT;}
+    [0-9]+[a-zA-Z]*[a-zA-Z0-9_]* {ADJ; ERROR("illegal token '%s'",yytext);}
+
     [a-zA-Z][a-zA-Z0-9_]* {ADJ; yylval.sval=String(yytext); RECORD_ID;return ID;}
-    
-    \"   {
-        ADJ;
-        string_ptr = string_buf;
-        BEGIN(string);
-    }
+
 }
 
-. {
-    ADJ;
-    ERROR("illegal token '%s'\n",yytext);
+. { ADJ; ERROR("illegal token '%s'",yytext);
 }
 

@@ -32,6 +32,7 @@ int main(int argc,char* argv[]){
                 break;
             case INT:
                 printf("%2d:%10s %4d %d\n",line_num,tokname(tok),token_pos,yylval.ival);
+                break;
             default:
                 printf("%2d:%10s %4d\n",line_num,tokname(tok),token_pos);
                 break;

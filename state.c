@@ -30,4 +30,5 @@ void state_reset(string file){
         ERR("open copy mode fail\n");
     }
     err = E_error_init();
+    err_count = 0;
 }
