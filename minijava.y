@@ -115,7 +115,7 @@ return: RETURN exp SEMICOLON { $$ = $2;}
     | RETURN exp error { }
     ;
 
-main: CLASS ID LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING_ID LBRACK RBRACK ID RPAREN LBRACE stm RBRACE RBRACE {$$ = A_main_init(S_symbol($2),S_symbol($12),$15);}
+main: CLASS ID LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING_ID LBRACK RBRACK ID RPAREN LBRACE stm RBRACE RBRACE {$$ = A_main_init(S_symbol($2,S_mainclass),S_symbol($12,S_class),$15);}
     ;
 
 classes: {$$ = A_class_list_init_null();}
@@ -123,17 +123,17 @@ classes: {$$ = A_class_list_init_null();}
     | error {}
     ;
 
-class: CLASS ID LBRACE vars methods RBRACE { $$ = A_class_init(S_symbol($2),NULL,$4,$5);}
-    | CLASS ID EXTENDS ID LBRACE vars methods RBRACE { $$ = A_class_init(S_symbol($2),S_symbol($4),$6,$7);}
+class: CLASS ID LBRACE vars methods RBRACE { $$ = A_class_init(S_symbol($2,S_class),NULL,$4,$5);}
+    | CLASS ID EXTENDS ID LBRACE vars methods RBRACE { $$ = A_class_init(S_symbol($2,S_class),S_symbol($4,S_class),$6,$7);}
     ;
 methods: { $$ = A_method_list_init_null();}
     | method methods {$$ = A_method_list_init_methods($1,$2);}
     ;
 
-method: PUBLIC type ID LPAREN arg_decs RPAREN LBRACE stms return RBRACE {$$ = A_method_init($2,S_symbol($3),$5,$8,$9);}
+method: PUBLIC type ID LPAREN arg_decs RPAREN LBRACE stms return RBRACE {$$ = A_method_init($2,S_symbol($3,S_method),$5,$8,$9);}
     ;
 
-arg_dec_next: COMMA type ID {$$ = A_arg_dec_init($2,S_symbol($3));}
+arg_dec_next: COMMA type ID {$$ = A_arg_dec_init($2,S_symbol($3,S_var));}
 
 arg_dec_nexts: {$$ = A_arg_dec_list_init_null();}
     | arg_dec_next arg_dec_nexts {$$ = A_arg_dec_list_init_arg_decs($1,$2);}
@@ -142,7 +142,7 @@ arg_dec_nexts: {$$ = A_arg_dec_list_init_null();}
 arg_dec_next_more: arg_dec_next arg_dec_nexts {$$ = A_arg_dec_list_init_arg_decs($1,$2);}
     ;
 
-arg_dec: type ID { $$ = A_arg_dec_init($1,S_symbol($2));}
+arg_dec: type ID { $$ = A_arg_dec_init($1,S_symbol($2,S_var));}
     ;
 
 /* arg_decs mean 0 ~ N arg dec */
@@ -157,15 +157,15 @@ vars: {$$ = A_var_dec_list_init_null();}
     | error{}
     ;
 
-var: type ID SEMICOLON { $$ = A_var_dec_init($1,S_symbol($2));}
+var: type ID SEMICOLON { $$ = A_var_dec_init($1,S_symbol($2,S_var));}
     | type ID error {ERROR_NO_SEMICOLON();}
     ;
 
 type: INT_ID {$$ = A_type_init_int();}
-    | STRING_ID {$$ = A_type_init_string();}
+   /* | STRING_ID {$$ = A_type_init_string();} */
     | BOOLEAN_ID {$$ = A_type_init_boolean();}
     | INT_ID LBRACK RBRACK {$$ = A_type_init_array();}
-    | ID {$$ = A_type_init_sym(S_symbol($1));}
+    | ID {$$ = A_type_init_sym(S_symbol($1,S_class));}
     ;
 
 stms: {$$ = A_stm_list_init_null();}
@@ -174,23 +174,23 @@ stms: {$$ = A_stm_list_init_null();}
 
 stm_sem:
       PRINT LPAREN exp RPAREN {$$ = A_stm_init_print($3);}
-    | ID ASSIGN exp {$$ = A_stm_init_assign(S_symbol($1),$3);}
-    | ID LBRACK exp RBRACK ASSIGN exp { $$ = A_stm_init_sub(S_symbol($1),$3,$6);}
+    | ID ASSIGN exp {$$ = A_stm_init_assign(S_symbol($1,S_var),$3);}
+    | ID LBRACK exp RBRACK ASSIGN exp { $$ = A_stm_init_sub(S_symbol($1,S_var),$3,$6);}
     ;
 
-stm: LBRACE stms RBRACE {$$ = A_stm_init_stmlist($2);}
+stm: LBRACE stms RBRACE {$$ = A_stm_init_stm_list($2);}
     | IF LPAREN exp RPAREN stm ELSE stm {$$ = A_stm_init_cond($3,$5,$7);}
     | WHILE LPAREN exp RPAREN stm { $$ = A_stm_init_loop($3,$5);}
     | var {$$ = A_stm_init_var($1);}
     | stm_sem SEMICOLON { $$ = $1;}
     ;
 
-exp:  ID { $$ = A_exp_init_id(S_symbol($1));}
+exp:  ID { $$ = A_exp_init_id(S_symbol($1,S_var));}
     | INT { $$ = A_exp_init_intval($1);}
     | TRUE { $$ = A_exp_init_boolval(true);}
     | FALSE { $$ = A_exp_init_boolval(false);}
     | THIS { $$ = A_exp_init_this();}
-    | NEW ID LPAREN RPAREN {$$ = A_exp_init_newid(S_symbol($2));}
+    | NEW ID LPAREN RPAREN {$$ = A_exp_init_newid(S_symbol($2,S_class));}
     | NEW INT_ID LBRACK exp RBRACK { $$ = A_exp_init_array($4);}
     | REVERSE exp { $$ = A_exp_init_reverse($2);}
     | LPAREN exp RPAREN {$$ = A_exp_init_exp($2);}
@@ -204,7 +204,7 @@ exp:  ID { $$ = A_exp_init_id(S_symbol($1));}
     | exp LBRACK exp RBRACK { $$ = A_exp_init_sub($1,$3);}
     | exp DOT LENGTH { $$ = A_exp_init_length($1);}
     /* DONE: only suport no arg_decs */
-    | exp DOT ID LPAREN exps RPAREN { $$ = A_exp_init_method($1,S_symbol($3),$5);}
+    | exp DOT ID LPAREN exps RPAREN { $$ = A_exp_init_method($1,S_symbol($3,S_method),$5);}
     ;
 
 exp_next: COMMA exp {$$ = $2;}

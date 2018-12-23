@@ -6,7 +6,17 @@ A_goal A_goal_init(A_main main,A_class_list list){
     A_goal g = safe_malloc(sizeof(*g));
     g->main = main;
     g->classes = list;
-    g->tab = S_table_init(NULL);
+    g->tab = S_table_init();
+    
+    main->tab->parent = g->tab;
+    S_table_add_dec(g->tab,main->id);
+
+    A_class_list tmp = list;
+    while(tmp){
+        tmp->val->tab->parent = g->tab;
+        S_table_add_dec(g->tab,tmp->val->id);
+        tmp = tmp->next;
+    }
     return g;
 }
 
@@ -15,7 +25,11 @@ A_main A_main_init(S_sym id,S_sym arg_id,A_stm stm){
     mc->id = id;
     mc->arg_id = arg_id;
     mc->stm = stm;
- //   mc->tab = S_table_init(parent);
+    mc->tab = S_table_init();
+
+    S_table_add_use(mc->tab,arg_id);
+
+    stm->tab->parent = mc->tab;
     return mc;
 }
 
@@ -25,7 +39,16 @@ A_class A_class_init(S_sym id ,S_sym extend,A_var_dec_list vars,A_method_list me
     cls->extend = extend;
     cls->methods = methods;
     cls->vars = vars;
- //   cls->tab = S_table_init(parent);
+
+    cls->tab = S_table_init();
+    S_table_add_use(cls->tab,extend);
+    A_method_list tmp = methods;
+    while(tmp){
+        tmp->val->tab->parent = cls->tab;
+        S_table_add_dec(cls->tab,tmp->val->name);
+        tmp = tmp->next;
+    }
+
     return cls;
 }
 
@@ -35,7 +58,6 @@ A_var_dec A_var_dec_init(A_type type,S_sym name){
     v->name = name;
     return v;
 }
-
 A_method A_method_init(A_type type,S_sym name,A_arg_dec_list args, A_stm_list stms,A_exp ret){
     A_method m = safe_malloc(sizeof(*m));
     m->type = type;
@@ -43,7 +65,12 @@ A_method A_method_init(A_type type,S_sym name,A_arg_dec_list args, A_stm_list st
     m->args = args;
     m->stms = stms;
     m->ret = ret;
-   // m->tab = S_table_init(parent);
+    m->tab = S_table_init();
+
+    S_table_add_type(m->tab,type);
+    S_table_add_arg_dec_list(m->tab,args);
+    S_table_add_stm_list(m->tab,stms);
+    S_table_add_exp(m->tab,ret);
     return m;
 }
 
@@ -69,11 +96,12 @@ A_type A_type_init_boolean(){
     t->kind = A_type_boolean;
     return t;
 }
+/*
 A_type A_type_init_string(){
     A_type t = safe_malloc(sizeof(*t));
     t->kind = A_type_string;
     return t;
-}
+}*/
 A_type A_type_init_sym(S_sym name){
     A_type t = safe_malloc(sizeof(*t));
     t->kind = A_type_sym;
@@ -81,11 +109,12 @@ A_type A_type_init_sym(S_sym name){
     return t;
 }
 
-A_stm A_stm_init_stmlist(A_stm_list stms){
+A_stm A_stm_init_stm_list(A_stm_list stms){
     A_stm s = safe_malloc(sizeof(*s));
     s->kind = A_stm_stms;
     s->u.stms.stms = stms;
-    //s->tab = S_table_init(parent);
+    s->tab = S_table_init();
+    S_table_add_stm_list(s->tab,stms);
     return s;
 }
 A_stm A_stm_init_cond(A_exp cond,A_stm yes, A_stm no){
@@ -94,7 +123,11 @@ A_stm A_stm_init_cond(A_exp cond,A_stm yes, A_stm no){
     s->u.cond.cond = cond;
     s->u.cond.yes = yes;
     s->u.cond.no = no;
-    //s->tab = S_table_init(parent);
+
+    s->tab = S_table_init();
+    //S_table_add_exp(stm->tab,cond);
+    S_table_add_stm(s->tab,yes);
+    S_table_add_stm(s->tab,no);
     return s;
 }
 A_stm A_stm_init_loop(A_exp cond, A_stm stm){
@@ -102,14 +135,15 @@ A_stm A_stm_init_loop(A_exp cond, A_stm stm){
     s->kind = A_stm_loop;
     s->u.loop.cond = cond;
     s->u.loop.stm = stm;
-    //s->tab = S_table_init(parent);
+    s->tab = S_table_init();
+    S_table_add_stm(s->tab,stm);
     return s;
 }
 A_stm A_stm_init_print(A_exp out){
     A_stm s = safe_malloc(sizeof(*s));
     s->kind = A_stm_print;
     s->u.print.out = out;
-    //s->tab = S_table_init(parent);
+    s->tab = S_table_init();
     return s;
 }
 A_stm A_stm_init_assign(S_sym name,A_exp val){
@@ -117,7 +151,7 @@ A_stm A_stm_init_assign(S_sym name,A_exp val){
     s->kind = A_stm_assign;
     s->u.assign.name = name;
     s->u.assign.val = val;
-    //s->tab = S_table_init(parent);
+    s->tab = S_table_init();
     return s;
 }
 A_stm A_stm_init_sub(S_sym name,A_exp sub,A_exp val){
@@ -126,7 +160,7 @@ A_stm A_stm_init_sub(S_sym name,A_exp sub,A_exp val){
     s->u.sub.name = name;
     s->u.sub.sub = sub;
     s->u.sub.val = val;
-    //s->tab = S_table_init(parent);
+    s->tab = S_table_init();
     return s;
 }
 
