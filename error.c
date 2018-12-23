@@ -5,7 +5,7 @@
 
 E_error err;
 FILE* copy;
-
+int err_count;
 static string str_dup_line(string p){
     string it = p;
     while(*it && *it!='\n')
@@ -17,7 +17,7 @@ static string str_dup_line(string p){
     return r;
 }
 
-void record_error(int pos,int len){
+void record_error(int pos,int len,E_type type){
     size_t alloc_size;
     string line = NULL;
     E_pos_locate(err->pos,pos);
@@ -31,17 +31,45 @@ void record_error(int pos,int len){
     fseek(copy,pos,SEEK_SET);
     err->given = String_init_len(len);
     err->given[fread(err->given,len,sizeof(char),copy)] = '\x00';
-    err->kind = E_no_return;
+    err->kind = type;
 }
 
 void show_error(char const * msg,...){
     va_list ap;
-    ERR("Error: %d:%d: ",err->pos->row,err->pos->column);
+    string err_type;
+    switch (err->kind){
+        case E_lexicon:
+            err_type = "Lexical error";
+            break;
+        case E_syntax:
+            err_type = "Syntax error";
+            break;
+        case E_semantics:
+            err_type = "Semantic error";
+            break;
+        case E_unknown:
+            err_type = "Unknown error";
+            break;
+        default:
+            assert(false);
+            break;
+    }
+    ERR("%s: %d:%d: ",err_type,err->pos->row,err->pos->column);
     va_start(ap,msg);
     vfprintf(stderr,msg,ap);
     va_end(ap);
     ERR("\n> %s\n",err->line);
-    ERR("%*c%s\n",err->pos->column+2,' ',GREEN("^"));
+    // \t == 4 char
+    int len = err->pos->column-1;
+    int msg_len = 2;
+    for(int i=0;i<len;i++){
+        if(err->line[i] == '\t')
+            msg_len+=4;
+        else
+            msg_len++;
+    }
+    ERR("%*c%s\n",msg_len,' ',GREEN("^"));
+    err_count++;
 }
 
 E_error E_error_init(){
@@ -63,6 +91,6 @@ void E_pos_locate(E_pos e,int len){
     while(lines[num] > len)
         num--;
     e->row = num;
-    e->column = len - lines[num];
+    e->column = len - lines[num]+1;
 }
 

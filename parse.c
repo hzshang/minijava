@@ -9,11 +9,9 @@
 YYSTYPE yylval;
 extern A_goal root;
 extern int line_num;
-extern int yylex();
 extern int yydebug;
 extern int yyparse(void);
 extern E_error err;
-extern int yynerrs;
 int main(int argc,char* argv[]){
     if(argc == 1){
         ERR("Usage: %s filename [-D] [-O]\n",argv[0]);
@@ -35,8 +33,8 @@ int main(int argc,char* argv[]){
     string fname = argv[1];
     state_reset(fname);
     yyparse();
-    if(err->kind != E_none){
-        ERR("%d errors found\n",yynerrs);
+    if(err_count){
+        ERR("%d errors found\n",err_count);
         ERR("parse terminated\n");
         exit(1);
     }
@@ -46,10 +44,4 @@ int main(int argc,char* argv[]){
     }
     return 0;
 }
-
-
-
-
-
-
 
