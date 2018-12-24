@@ -1,11 +1,17 @@
-class test{
+class MainClass{
 	public static void main(String[] a){
-        System.out.println(123);
+        System.out.println(test.func(1,2));
 	}
 }
 class test{
-    public int func(String a){
-        System.out.println(123);
-        return 123;
+    public int func(int a,int b){
+        int c;
+        int d;
+        if(c){
+            t = c;
+        }else{
+            t = d;
+        }
+        return a+b;
     }
 }

@@ -27,9 +27,8 @@ A_main A_main_init(S_sym id,S_sym arg_id,A_stm stm){
     mc->stm = stm;
     mc->tab = S_table_init();
 
-    S_table_add_use(mc->tab,arg_id);
-
-    stm->tab->parent = mc->tab;
+    S_table_add_dec(mc->tab,arg_id);
+    S_table_add_stm(mc->tab,stm);
     return mc;
 }
 
@@ -96,12 +95,11 @@ A_type A_type_init_boolean(){
     t->kind = A_type_boolean;
     return t;
 }
-/*
 A_type A_type_init_string(){
     A_type t = safe_malloc(sizeof(*t));
     t->kind = A_type_string;
     return t;
-}*/
+}
 A_type A_type_init_sym(S_sym name){
     A_type t = safe_malloc(sizeof(*t));
     t->kind = A_type_sym;
@@ -125,7 +123,6 @@ A_stm A_stm_init_cond(A_exp cond,A_stm yes, A_stm no){
     s->u.cond.no = no;
 
     s->tab = S_table_init();
-    //S_table_add_exp(stm->tab,cond);
     S_table_add_stm(s->tab,yes);
     S_table_add_stm(s->tab,no);
     return s;
@@ -168,6 +165,7 @@ A_stm A_stm_init_var(A_var_dec v){
     A_stm s = safe_malloc(sizeof(*s));
     s->kind = A_stm_var_dec;
     s->u.var_dec.var_dec = v;
+    s->tab = S_table_init();
     return s;
 }
 

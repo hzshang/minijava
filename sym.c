@@ -4,7 +4,7 @@
 #include "error.h"
 #include "absyn.h"
 
-S_sym S_symbol(string name,S_type type){
+S_sym S_symbol_init(string name){
     /*
     S_sym tmp = S_sym_lookup(t,name);
     if(!tmp){
@@ -19,12 +19,10 @@ S_sym S_symbol(string name,S_type type){
 
     r->name = tmp_name;
     r->pos = E_pos_init();
-    r->kind = type;
-
+    r->kind = S_unknown;
     E_pos_locate(r->pos,token_pos);
     return r;
 }
-
 S_sym S_sym_lookup(S_table t,string name){
     /*
     S_table tmp = t;
@@ -79,7 +77,7 @@ void S_table_add_arg_dec_list(S_table tab,A_arg_dec_list args){
 void S_table_add_stm_list(S_table tab,A_stm_list list){
     A_stm_list tmp = list;
     while(tmp){
-        tmp->val->tab->parent = tab;
+        S_table_add_stm(tab,tmp->val);
         tmp = tmp->next;
     }
 }
