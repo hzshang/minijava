@@ -33,11 +33,18 @@ typedef struct A_type_* A_type;
 typedef struct S_sym_* S_sym;
 typedef struct S_table_* S_table;
 typedef struct S_chain_* S_chain;
-typedef enum {S_method,S_class,S_var,S_mainclass} S_type;
+typedef enum {S_method,S_class,S_var,S_mainclass,S_unknown} S_type;
+
+#define S_SYM_THIS ((S_sym)1)
+#define S_SYM_BAD ((S_sym)2)
+
 struct S_sym_ {
     string name;
     E_pos pos;
     S_type kind;
+    union {
+        struct{ S_sym parent;} method;
+    }u;
 };
 struct S_chain_{
     S_sym val;
@@ -49,7 +56,7 @@ struct S_table_ {
     S_table parent;
 };
 
-S_sym S_symbol(string name,S_type);
+S_sym S_symbol_init(string name);
 S_sym S_sym_lookup(S_table,string);
 
 S_table S_table_init();

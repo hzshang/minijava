@@ -286,9 +286,9 @@ void parse_type(A_type type){
         case A_type_boolean:
             printf_fmt("Bool");
             break;
-//        case A_type_string:
-//            printf_fmt("String");
-//            break;
+        case A_type_string:
+            printf_fmt("String");
+            break;
         case A_type_sym:
             parse_sym(type->u.id.name);
             break;

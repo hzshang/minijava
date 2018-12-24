@@ -64,6 +64,8 @@ void yyerror(char const *msg){
 
     A_exp exp;
     A_exp_list exp_list;
+
+    S_sym id;
 }
 %token <sval> ID STRING
 %token <ival> INT
@@ -90,6 +92,7 @@ void yyerror(char const *msg){
 %type <stm_list> stms
 %type <exp> exp exp_next return
 %type <exp_list> exps exp_nexts exp_next_more
+%type <id> id
 
 /* 先执行的排在下面*/
 %nonassoc LT AND
@@ -114,8 +117,14 @@ return: RETURN exp SEMICOLON { $$ = $2;}
     | RETURN error {} 
     | RETURN exp error { }
     ;
+id: ID { $$ = S_symbol_init($1);}
+    ;
 
-main: CLASS ID LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING_ID LBRACK RBRACK ID RPAREN LBRACE stm RBRACE RBRACE {$$ = A_main_init(S_symbol($2,S_mainclass),S_symbol($12,S_class),$15);}
+main: CLASS id LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING_ID LBRACK RBRACK id RPAREN LBRACE stm RBRACE RBRACE {
+        $2->kind = S_mainclass;
+        $12->kind = S_var;
+        $$ = A_main_init($2,$12,$15);
+    }
     ;
 
 classes: {$$ = A_class_list_init_null();}
@@ -123,17 +132,24 @@ classes: {$$ = A_class_list_init_null();}
     | error {}
     ;
 
-class: CLASS ID LBRACE vars methods RBRACE { $$ = A_class_init(S_symbol($2,S_class),NULL,$4,$5);}
-    | CLASS ID EXTENDS ID LBRACE vars methods RBRACE { $$ = A_class_init(S_symbol($2,S_class),S_symbol($4,S_class),$6,$7);}
+class: CLASS id LBRACE vars methods RBRACE {
+        $2->kind = S_class;
+        $$ = A_class_init($2,NULL,$4,$5);}
+    | CLASS id EXTENDS id LBRACE vars methods RBRACE {
+        $2->kind = S_class;
+        $4->kind = S_class;
+        $$ = A_class_init($2,$4,$6,$7);}
     ;
 methods: { $$ = A_method_list_init_null();}
     | method methods {$$ = A_method_list_init_methods($1,$2);}
     ;
 
-method: PUBLIC type ID LPAREN arg_decs RPAREN LBRACE stms return RBRACE {$$ = A_method_init($2,S_symbol($3,S_method),$5,$8,$9);}
+method: PUBLIC type id LPAREN arg_decs RPAREN LBRACE stms return RBRACE {
+        $3->kind = S_method;
+        $$ = A_method_init($2,$3,$5,$8,$9);}
     ;
 
-arg_dec_next: COMMA type ID {$$ = A_arg_dec_init($2,S_symbol($3,S_var));}
+arg_dec_next: COMMA type id {$3->kind = S_var;$$ = A_arg_dec_init($2,$3);}
 
 arg_dec_nexts: {$$ = A_arg_dec_list_init_null();}
     | arg_dec_next arg_dec_nexts {$$ = A_arg_dec_list_init_arg_decs($1,$2);}
@@ -142,14 +158,13 @@ arg_dec_nexts: {$$ = A_arg_dec_list_init_null();}
 arg_dec_next_more: arg_dec_next arg_dec_nexts {$$ = A_arg_dec_list_init_arg_decs($1,$2);}
     ;
 
-arg_dec: type ID { $$ = A_arg_dec_init($1,S_symbol($2,S_var));}
+arg_dec: type id { $2->kind = S_var;$$ = A_arg_dec_init($1,$2);}
     ;
 
 /* arg_decs mean 0 ~ N arg dec */
 arg_decs: arg_dec arg_dec_next_more {$$ = A_arg_dec_list_init_arg_decs($1,$2);}
     | arg_dec {$$ = A_arg_dec_list_init_arg_dec($1);}
     | {$$ = A_arg_dec_list_init_null();}
-/*    | error{printf("fuck\n");}*/
     ;
 
 vars: {$$ = A_var_dec_list_init_null();}
@@ -157,15 +172,15 @@ vars: {$$ = A_var_dec_list_init_null();}
     | error{}
     ;
 
-var: type ID SEMICOLON { $$ = A_var_dec_init($1,S_symbol($2,S_var));}
-    | type ID error {ERROR_NO_SEMICOLON();}
+var: type id SEMICOLON { $2->kind = S_var;$$ = A_var_dec_init($1,$2);}
+    | type id error {ERROR_NO_SEMICOLON();}
     ;
 
 type: INT_ID {$$ = A_type_init_int();}
-   /* | STRING_ID {$$ = A_type_init_string();} */
+    | STRING_ID {$$ = A_type_init_string();} 
     | BOOLEAN_ID {$$ = A_type_init_boolean();}
     | INT_ID LBRACK RBRACK {$$ = A_type_init_array();}
-    | ID {$$ = A_type_init_sym(S_symbol($1,S_class));}
+    | id {$1->kind = S_class;$$ = A_type_init_sym($1);}
     ;
 
 stms: {$$ = A_stm_list_init_null();}
@@ -174,8 +189,8 @@ stms: {$$ = A_stm_list_init_null();}
 
 stm_sem:
       PRINT LPAREN exp RPAREN {$$ = A_stm_init_print($3);}
-    | ID ASSIGN exp {$$ = A_stm_init_assign(S_symbol($1,S_var),$3);}
-    | ID LBRACK exp RBRACK ASSIGN exp { $$ = A_stm_init_sub(S_symbol($1,S_var),$3,$6);}
+    | id ASSIGN exp {$1->kind = S_var;$$ = A_stm_init_assign($1,$3);}
+    | id LBRACK exp RBRACK ASSIGN exp { $1->kind = S_var;$$ = A_stm_init_sub($1,$3,$6);}
     ;
 
 stm: LBRACE stms RBRACE {$$ = A_stm_init_stm_list($2);}
@@ -185,12 +200,12 @@ stm: LBRACE stms RBRACE {$$ = A_stm_init_stm_list($2);}
     | stm_sem SEMICOLON { $$ = $1;}
     ;
 
-exp:  ID { $$ = A_exp_init_id(S_symbol($1,S_var));}
+exp:  id { $1->kind =S_var;$$ = A_exp_init_id($1);}
     | INT { $$ = A_exp_init_intval($1);}
     | TRUE { $$ = A_exp_init_boolval(true);}
     | FALSE { $$ = A_exp_init_boolval(false);}
     | THIS { $$ = A_exp_init_this();}
-    | NEW ID LPAREN RPAREN {$$ = A_exp_init_newid(S_symbol($2,S_class));}
+    | NEW id LPAREN RPAREN {$2->kind = S_class;$$ = A_exp_init_newid($2);}
     | NEW INT_ID LBRACK exp RBRACK { $$ = A_exp_init_array($4);}
     | REVERSE exp { $$ = A_exp_init_reverse($2);}
     | LPAREN exp RPAREN {$$ = A_exp_init_exp($2);}
@@ -204,7 +219,20 @@ exp:  ID { $$ = A_exp_init_id(S_symbol($1,S_var));}
     | exp LBRACK exp RBRACK { $$ = A_exp_init_sub($1,$3);}
     | exp DOT LENGTH { $$ = A_exp_init_length($1);}
     /* DONE: only suport no arg_decs */
-    | exp DOT ID LPAREN exps RPAREN { $$ = A_exp_init_method($1,S_symbol($3,S_method),$5);}
+    | exp DOT id LPAREN exps RPAREN {
+        $3->kind = S_method;
+        switch($1->kind){
+            case A_exp_id:
+                $3->u.method.parent = $1->u.id.name;
+                break;
+            case A_exp_this:
+                $3->u.method.parent = S_SYM_THIS;
+                break;
+            default:
+                $3->u.method.parent = S_SYM_BAD;
+                break;
+        }
+        $$ = A_exp_init_method($1,$3,$5);}
     ;
 
 exp_next: COMMA exp {$$ = $2;}

@@ -94,7 +94,7 @@ struct A_arg_dec_list_ {
 };
 
 struct A_type_{
-    enum{A_type_int,A_type_array,A_type_boolean,A_type_sym} kind;
+    enum{A_type_int,A_type_array,A_type_boolean,A_type_sym,A_type_string} kind;
     union{
         struct{S_sym name;} id;
     }u;
@@ -154,7 +154,7 @@ A_arg_dec A_arg_dec_init(A_type,S_sym);
 A_type A_type_init_int();
 A_type A_type_init_array();
 A_type A_type_init_boolean();
-//A_type A_type_init_string();
+A_type A_type_init_string();
 A_type A_type_init_sym(S_sym);
 
 A_stm A_stm_init_stm_list(A_stm_list);
