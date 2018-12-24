@@ -40,7 +40,13 @@ A_class A_class_init(S_sym id ,S_sym extend,A_var_dec_list vars,A_method_list me
     cls->vars = vars;
 
     cls->tab = S_table_init();
-    S_table_add_use(cls->tab,extend);
+    if(extend)
+        S_table_add_use(cls->tab,extend);
+    A_var_dec_list t = vars;
+    while(t){
+        S_table_add_var_dec(cls->tab,t->val);
+        t = t->next;
+    }
     A_method_list tmp = methods;
     while(tmp){
         tmp->val->tab->parent = cls->tab;
@@ -123,8 +129,8 @@ A_stm A_stm_init_cond(A_exp cond,A_stm yes, A_stm no){
     s->u.cond.no = no;
 
     s->tab = S_table_init();
-    S_table_add_stm(s->tab,yes);
-    S_table_add_stm(s->tab,no);
+    //S_table_add_stm(s->tab,yes);
+    //S_table_add_stm(s->tab,no);
     return s;
 }
 A_stm A_stm_init_loop(A_exp cond, A_stm stm){
@@ -133,7 +139,7 @@ A_stm A_stm_init_loop(A_exp cond, A_stm stm){
     s->u.loop.cond = cond;
     s->u.loop.stm = stm;
     s->tab = S_table_init();
-    S_table_add_stm(s->tab,stm);
+//    S_table_add_stm(s->tab,stm);
     return s;
 }
 A_stm A_stm_init_print(A_exp out){

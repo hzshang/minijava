@@ -57,7 +57,7 @@ struct S_table_ {
 };
 
 S_sym S_symbol_init(string name);
-S_sym S_sym_lookup(S_table,string);
+S_sym S_sym_lookup(S_table,S_sym);
 
 S_table S_table_init();
 void S_table_add_use(S_table,S_sym);
@@ -73,5 +73,12 @@ void S_table_add_type(S_table tab,A_type t);
 void S_table_add_exp_list(S_table tab,A_exp_list list);
 void S_table_add_exp(S_table tab,A_exp t);
 void S_table_add_stm(S_table tab,A_stm stm);
+
+void S_check_goal(A_goal g);
+void S_check_class(A_class c);
+void S_check_method(A_method m);
+void S_check_stm(A_stm s);
+void S_check_main(A_main);
+
 
 #endif /* !SYM_H */
