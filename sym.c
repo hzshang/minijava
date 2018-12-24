@@ -3,7 +3,7 @@
 #include "sym.h"
 #include "error.h"
 #include "absyn.h"
-
+#include "util.h"
 S_sym S_symbol_init(string name){
     /*
     S_sym tmp = S_sym_lookup(t,name);
@@ -23,18 +23,17 @@ S_sym S_symbol_init(string name){
     E_pos_locate(r->pos,token_pos);
     return r;
 }
-S_sym S_sym_lookup(S_table t,string name){
-    /*
+S_sym S_sym_lookup(S_table t,S_sym s){
     S_table tmp = t;
     while(tmp){
-        S_sym p = tmp->chain;
+        S_chain p= tmp->dec;
         while(p){
-            if(!strcmp(p->name,name))
-                return p;
+            if(!strcmp(p->val->name,s->name))
+                return p->val;
             p = p->next;
         }
         tmp = tmp->parent;
-    }*/
+    }
     return NULL;
 }
 
@@ -51,12 +50,14 @@ S_chain S_chain_init(S_sym id){
     return c;
 }
 void S_table_add_use(S_table t, S_sym s){
+    assert(s!=NULL);
     S_chain c = S_chain_init(s);
     c->next = t->use;
     t->use = c;
 }
 
 void S_table_add_dec(S_table t,S_sym s){
+    assert(s!=NULL);
     S_chain c = S_chain_init(s);
     c->next = t->dec;
     t->dec = c;
@@ -141,6 +142,7 @@ void S_table_add_stm(S_table tab,A_stm stm){
             S_table_add_stm_list(tab,stm->u.stms.stms);
             break;
         case A_stm_if_else:
+//            stm->tab->parent = tab;
             S_table_add_exp(tab,stm->u.cond.cond);
             stm->u.cond.yes->tab->parent = tab;
             stm->u.cond.no->tab->parent = tab;
@@ -166,6 +168,91 @@ void S_table_add_stm(S_table tab,A_stm stm){
             break;
         default:
             assert(false);
+            break;
+    }
+}
+/* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= */
+/*
+ * check begin
+ */
+void S_check_use_chain(S_table tab){
+    S_chain p = tab->use;
+    while(p){
+        if (S_sym_lookup(tab,p->val)){
+            // found a symbol check
+            ERR("found symbol :%s\n",p->val->name);
+        }else{
+            // can't find symbol
+            // asm("int $3");
+            ERR("can't found symbol :%s\n",p->val->name);
+        }
+        p = p->next;
+    }
+}
+void S_check_dec_chain(S_table tab){
+    S_chain p = tab->dec;
+    while(p){
+        S_sym r = S_sym_lookup(tab,p->val);
+        if (r !=NULL && r!= p->val){
+            // found a symbol check
+            ERR("redefine symbol :%s\n",p->val->name);
+        }else{
+        }
+        p = p->next;
+    }
+}
+#define S_CHECK(x) do{\
+    S_check_use_chain(x->tab);\
+    S_check_dec_chain(x->tab);\
+} while(0)
+void S_check_goal(A_goal g){
+    S_CHECK(g);
+    S_check_main(g->main);
+    A_class_list tmp = g->classes;
+    while(tmp){
+        S_check_class(tmp->val);
+        tmp = tmp->next;
+    }
+}
+void S_check_main(A_main main){
+    S_CHECK(main);
+    S_check_stm(main->stm);
+}
+void S_check_class(A_class c){
+    S_CHECK(c);
+    S_check_use_chain(c->tab);
+    S_check_use_chain(c->tab);
+    A_method_list m = c->methods;
+    while(m){
+        S_check_method(m->val);
+        m = m->next;
+    }
+}
+static inline void S_check_stm_list(A_stm_list list){
+    A_stm_list tmp = list;
+    while(tmp){
+        S_check_stm(tmp->val);
+        tmp = tmp->next;
+    }
+}
+void S_check_method(A_method m){
+    S_CHECK(m);
+    S_check_stm_list(m->stms);
+}
+void S_check_stm(A_stm s){
+    S_CHECK(s);
+    switch(s->kind){
+        case A_stm_stms:
+            S_check_stm_list(s->u.stms.stms);
+            break;
+        case A_stm_if_else:
+            S_check_stm(s->u.cond.yes);
+            S_check_stm(s->u.cond.no);
+            break;
+        case A_stm_loop:
+            S_check_stm(s->u.loop.stm);
+            break;
+        default:
             break;
     }
 }
