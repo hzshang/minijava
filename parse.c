@@ -33,7 +33,8 @@ int main(int argc,char* argv[]){
     string fname = argv[1];
     state_reset(fname);
     yyparse();
-    S_check_goal(root);
+    if(!err_count)
+        S_check_goal(root);
     if(err_count){
         ERR("%d errors found\n",err_count);
         ERR("parse terminated\n");

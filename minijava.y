@@ -36,7 +36,7 @@ void yyerror(char const *msg){
 #define ERROR_NO_MATCH()
 
 %}
-%define parse.error verbose
+%define parse.error verbose 
 %define parse.lac full
 %union {
     int pos;
@@ -114,10 +114,11 @@ goal: main classes { $$ = A_goal_init($1,$2);}
     ;
 
 return: RETURN exp SEMICOLON { $$ = $2;}
-    | RETURN error {} 
+    | RETURN error { }
     | RETURN exp error { }
+
     ;
-id: ID { $$ = S_symbol_init($1);}
+id: ID { $$ = S_symbol_init($1,token_pos);}
     ;
 
 main: CLASS id LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING_ID LBRACK RBRACK id RPAREN LBRACE stm RBRACE RBRACE {
@@ -129,7 +130,7 @@ main: CLASS id LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING_ID LBRACK RBRACK id 
 
 classes: {$$ = A_class_list_init_null();}
     | class classes { $$ = A_class_list_init_classes($1,$2);}
-    | error {}
+    | error{}
     ;
 
 class: CLASS id LBRACE vars methods RBRACE {
@@ -169,11 +170,11 @@ arg_decs: arg_dec arg_dec_next_more {$$ = A_arg_dec_list_init_arg_decs($1,$2);}
 
 vars: {$$ = A_var_dec_list_init_null();}
     | var vars {$$ = A_var_dec_list_init_vars($1,$2);}
-    | error{}
+    | error{ } 
     ;
 
 var: type id SEMICOLON { $2->kind = S_var;$$ = A_var_dec_init($1,$2);}
-    | type id error {ERROR_NO_SEMICOLON();}
+    |type id error {}
     ;
 
 type: INT_ID {$$ = A_type_init_int();}

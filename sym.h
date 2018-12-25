@@ -34,13 +34,14 @@ typedef struct S_sym_* S_sym;
 typedef struct S_table_* S_table;
 typedef struct S_chain_* S_chain;
 typedef enum {S_method,S_class,S_var,S_mainclass,S_unknown} S_type;
+typedef enum { S_dom_goal,S_dom_main,S_dom_class,S_dom_method,S_dom_stm,S_dom_unknown} S_dom;
 
 #define S_SYM_THIS ((S_sym)1)
 #define S_SYM_BAD ((S_sym)2)
 
 struct S_sym_ {
     string name;
-    E_pos pos;
+    int pos;
     S_type kind;
     union {
         struct{ S_sym parent;} method;
@@ -54,12 +55,16 @@ struct S_table_ {
     S_chain dec;
     S_chain use;
     S_table parent;
+    union {
+        struct { A_goal goal;} goal;
+    } u;
+    S_dom dom;
 };
-
-S_sym S_symbol_init(string name);
+S_sym S_symbol(S_sym s);
+S_sym S_symbol_init(string name,int);
 S_sym S_sym_lookup(S_table,S_sym);
 
-S_table S_table_init();
+S_table S_table_init(S_dom);
 void S_table_add_use(S_table,S_sym);
 void S_table_add_dec(S_table,S_sym);
 
