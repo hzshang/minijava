@@ -4,7 +4,11 @@
 #include "error.h"
 #include "absyn.h"
 #include "util.h"
-S_sym S_symbol_init(string name){
+
+#define CHECK do{ \
+    if(err_count) return;\
+} while(0)
+S_sym S_symbol_init(string name,int pos){
     /*
     S_sym tmp = S_sym_lookup(t,name);
     if(!tmp){
@@ -18,15 +22,18 @@ S_sym S_symbol_init(string name){
     strcpy(tmp_name,name);
 
     r->name = tmp_name;
-    r->pos = E_pos_init();
     r->kind = S_unknown;
-    E_pos_locate(r->pos,token_pos);
+    r->pos = pos;
     return r;
 }
-S_sym S_sym_lookup(S_table t,S_sym s){
+S_sym S_sym_lookup_method(S_table t,S_sym s){
+    ERR("don't support method\n");
+    return NULL;
+}
+S_sym S_sym_lookup_var(S_table t,S_sym s){
     S_table tmp = t;
     while(tmp){
-        S_chain p= tmp->dec;
+        S_chain p = tmp->dec;
         while(p){
             if(!strcmp(p->val->name,s->name))
                 return p->val;
@@ -36,12 +43,20 @@ S_sym S_sym_lookup(S_table t,S_sym s){
     }
     return NULL;
 }
+S_sym S_sym_lookup(S_table t,S_sym s){
+    if(s->kind == S_method){
+        return S_sym_lookup_method(t,s);
+    }else{
+        return S_sym_lookup_var(t,s);
+    }
+}
 
-S_table S_table_init(){
+S_table S_table_init(S_dom dom){
     S_table t = safe_malloc(sizeof(*t));
     t->use = NULL;
     t->dec = NULL;
     t->parent = NULL;
+    t->dom = dom;
 }
 S_chain S_chain_init(S_sym id){
     S_chain c = safe_malloc(sizeof(*c));
@@ -51,6 +66,7 @@ S_chain S_chain_init(S_sym id){
 }
 void S_table_add_use(S_table t, S_sym s){
     assert(s!=NULL);
+    if(!s)return;
     S_chain c = S_chain_init(s);
     c->next = t->use;
     t->use = c;
@@ -58,6 +74,7 @@ void S_table_add_use(S_table t, S_sym s){
 
 void S_table_add_dec(S_table t,S_sym s){
     assert(s!=NULL);
+    if(!s)return;
     S_chain c = S_chain_init(s);
     c->next = t->dec;
     t->dec = c;
@@ -178,13 +195,15 @@ void S_table_add_stm(S_table tab,A_stm stm){
 void S_check_use_chain(S_table tab){
     S_chain p = tab->use;
     while(p){
-        if (S_sym_lookup(tab,p->val)){
-            // found a symbol check
-            ERR("found symbol :%s\n",p->val->name);
-        }else{
-            // can't find symbol
-            // asm("int $3");
-            ERR("can't found symbol :%s\n",p->val->name);
+        if(p->val->kind !=S_method){
+            if (S_sym_lookup(tab,p->val)){
+                // found a symbol check
+    //            ERR("found symbol :%s\n",p->val->name);
+            }else{
+                // can't find symbol
+                record_error(p->val->pos,strlen(p->val->name),E_semantics);
+                show_error("unresolvable symbol '%s'",p->val->name);
+            }
         }
         p = p->next;
     }
@@ -192,11 +211,16 @@ void S_check_use_chain(S_table tab){
 void S_check_dec_chain(S_table tab){
     S_chain p = tab->dec;
     while(p){
-        S_sym r = S_sym_lookup(tab,p->val);
-        if (r !=NULL && r!= p->val){
-            // found a symbol check
-            ERR("redefine symbol :%s\n",p->val->name);
-        }else{
+        if (p->val->kind !=S_method){
+            S_sym r = S_sym_lookup(tab,p->val);
+            if (r !=NULL && r!= p->val){
+                // found a symbol check
+                ERR("redefine symbol found:\n");
+                record_error(p->val->pos,strlen(p->val->name),E_semantics);
+                show_error("symbol '%s'",p->val->name);
+                record_error(r->pos,strlen(r->name),E_semantics);
+                show_error("symbol '%s'",r->name);
+            }
         }
         p = p->next;
     }
