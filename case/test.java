@@ -19,3 +19,8 @@ class test{
         return m;
     }
 }
+class test2{
+    public int one(){
+        return 1;
+    }
+}
